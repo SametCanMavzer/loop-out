@@ -28,6 +28,17 @@ func setup(rng: RandomNumberGenerator, arch: BotArchetype, rope: Object, jumper:
 	_lookahead_ticks = _ms_to_ticks(lookahead_ms)
 
 
+## Tur ilerledikçe σ büyür (zorluk eğrisi). GameState/arena tur değişiminde çağırır.
+func set_round(round_no: int) -> void:
+	_round = round_no
+
+
+## Yeniden dizilim sonrası çağrılır: bot konumu değişti, bayat niyeti iptal et → yeniden örnekler.
+func reset_intent() -> void:
+	_intent_tick = -1
+	_handled_cross = -1
+
+
 func poll(tick: int) -> Array[InputCommand]:
 	var out: Array[InputCommand] = []
 	if _rng == null or _arch == null:

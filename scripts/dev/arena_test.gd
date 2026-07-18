@@ -1,8 +1,8 @@
 extends Node3D
-## F5b editör kontrolü — dev harness (final arena F8/GameState). Çoklu jumper + daralan çember +
-## yeniden dizilim + eleme impulsu + StumbleJudge/EventBus köprüsü.
-## Oyuncu (id 0, mavi) SPACE ile oynar → gerçek sendeleme/eleme. Dummy'ler (gri) yer tutucu
-## (gerçek botlar F6). E = rastgele bir dummy'yi ele (çember tepkisini göster). R = yeniden başlat.
+## F5b+F6b editör kontrolü — dev harness (final arena F8/GameState). Çoklu jumper + daralan
+## çember + yeniden dizilim + eleme impulsu + StumbleJudge/EventBus köprüsü + gerçek botlar.
+## Oyuncu (id 0, mavi) SPACE ile oynar; botlar (gri) BotBrain ile Rng.bots'tan zıplar (§4.6).
+## Tur ilerledikçe σ büyür → doğal eleme. E = rastgele rakip ele, R = yeniden başlat.
 
 const N_START := 8
 const PLAYER_ANGLE := PI / 2.0
@@ -26,6 +26,7 @@ var _r_max := 9.0
 var _ring_radius := 9.0
 var _flying := []           # elenen gövdeler: {node, vel:Vector3, angvel:float, life:float}
 var _reassign_tween: Tween
+var _arch_by_id := {}       # id -> BotArchetype (oyuncu: null)
 
 # oyuncu zıplama görseli
 var _viz_vy := 0.0
@@ -55,7 +56,13 @@ func _ready() -> void:
 
 	$UI/Restart.pressed.connect(func() -> void: get_tree().reload_current_scene())
 
+	# Bot arketip dağıtımı (7 bot): karışık Acemi/Panikçi/Sağlam.
+	var acemi := load("res://data/archetypes/acemi.tres")
+	var panik := load("res://data/archetypes/panikci.tres")
+	var saglam := load("res://data/archetypes/saglam.tres")
+	var dist := [saglam, panik, acemi, acemi, panik, saglam, acemi]  # id 1..7
 	for i in N_START:
+		_arch_by_id[i] = null if i == _player_id else dist[(i - 1) % dist.size()]
 		_spawn_jumper(i)
 	_alive_ids = range(N_START)
 	_snap_positions()
@@ -67,7 +74,9 @@ func _spawn_jumper(id: int) -> void:
 	if id == _player_id:
 		j.setup(HumanInput.new(_input), Config.jumper_tuning())
 	else:
-		j.setup(null, Config.jumper_tuning())   # dummy: girdi yok (yer tutucu)
+		var brain := BotBrain.new()   # gerçek rakip: BotBrain, Rng.bots stream (§4.6/§4.8)
+		brain.setup(Rng.bots, _arch_by_id[id], _rope, j, _round, float(Config.bots.get("lookahead_ms", 600)))
+		j.setup(brain, Config.jumper_tuning())
 	var viz := Node3D.new(); add_child(viz)
 	var cap := MeshInstance3D.new()
 	var mesh := CapsuleMesh.new(); mesh.radius = 0.4; mesh.height = 1.4
@@ -94,6 +103,13 @@ func _snap_positions() -> void:
 func _physics_process(_dt: float) -> void:
 	_clock.advance()
 	var t := _clock.current_tick
+	# Demo tur ilerlemesi: her 720 tick (~12sn) σ büyür → doğal eleme (zorluk eğrisi).
+	if t > 0 and t % 720 == 0:
+		_round += 1
+		for id in _alive_ids:
+			var src = _players[id].jumper.input_source
+			if src is BotBrain:
+				src.set_round(_round)
 	for id in _alive_ids:
 		_players[id].jumper.tick(t)
 	# İp her zaman döner (§4.4); tween sırasında yalnız crossing askıda → boş hedef listesi.
@@ -105,31 +121,37 @@ func _physics_process(_dt: float) -> void:
 	_rope_viz.on_logic_step()
 
 
-func _on_crossed(id: int, result: int, _delta_ms: float) -> void:
-	# F5b: yalnız oyuncu gerçek sendeleme/eleme (dummy'ler yer tutucu — F6 botları gelene dek).
-	if id != _player_id:
+func _on_crossed(id: int, result: int, delta_ms: float) -> void:
+	# Tüm jumper'lar (oyuncu + botlar) StumbleJudge'dan geçer.
+	if not _players.has(id):
 		return
-	# Zıplama sonucu geri bildirimi (PERFECT/GRAZE/MISS)
-	_flash = 1.0
-	match result:
-		Rope.CrossResult.PERFECT:
-			_feedback.text = "PERFECT (%d ms)" % int(_delta_ms); _feedback.modulate = Color(0.3, 1.0, 0.4)
-		Rope.CrossResult.GRAZE:
-			_feedback.text = "GRAZE (%d ms)" % int(_delta_ms); _feedback.modulate = Color(1.0, 0.9, 0.3)
-		Rope.CrossResult.MISS:
-			_feedback.text = "MISS"; _feedback.modulate = Color(1.0, 0.35, 0.3)
 	var j = _players[id].jumper
 	var outcome := _judge.resolve(j, result, Config.pardon_rounds(_round))
 	match outcome:
 		StumbleJudge.Outcome.STUMBLED:
-			EventBus.jumper_stumbled.emit(id)
-			_players[id].mat.albedo_color = Color(1.0, 0.85, 0.2)   # ⚠ sarı
+			EventBus.jumper_stumbled.emit(id); _refresh_color(id)
 		StumbleJudge.Outcome.PARDONED:
-			EventBus.jumper_pardoned.emit(id)
-			_players[id].mat.albedo_color = Color(0.35, 0.6, 0.9)   # temiz → mavi
+			EventBus.jumper_pardoned.emit(id); _refresh_color(id)
 		StumbleJudge.Outcome.ELIMINATED:
-			EventBus.jumper_eliminated.emit(id, 0)
-			_eliminate(id)
+			EventBus.jumper_eliminated.emit(id, 0); _eliminate(id)
+	# Geri bildirim yazısı (PERFECT/GRAZE/MISS) yalnız oyuncu için
+	if id == _player_id:
+		_flash = 1.0
+		match result:
+			Rope.CrossResult.PERFECT:
+				_feedback.text = "PERFECT (%d ms)" % int(delta_ms); _feedback.modulate = Color(0.3, 1.0, 0.4)
+			Rope.CrossResult.GRAZE:
+				_feedback.text = "GRAZE (%d ms)" % int(delta_ms); _feedback.modulate = Color(1.0, 0.9, 0.3)
+			Rope.CrossResult.MISS:
+				_feedback.text = "MISS"; _feedback.modulate = Color(1.0, 0.35, 0.3)
+
+
+func _refresh_color(id: int) -> void:
+	if not _players.has(id):
+		return
+	var warned: bool = _players[id].jumper.has_warning
+	var base := Color(0.35, 0.6, 0.9) if id == _player_id else Color(0.55, 0.55, 0.58)
+	_players[id].mat.albedo_color = Color(1.0, 0.85, 0.2) if warned else base
 
 
 func _eliminate(id: int) -> void:
@@ -165,6 +187,9 @@ func _reassign() -> void:
 	for i in n:
 		var id = _alive_ids[i]
 		_players[id].jumper.angle_pos = angles[i]   # mantık son konuma hemen geçer
+		var src = _players[id].jumper.input_source
+		if src is BotBrain:
+			src.reset_intent()   # konum değişti → bot yeni geçiş için yeniden örnekler
 		tw.tween_property(_players[id].viz, "position", Ring.world_pos(angles[i], _ring_radius, 0.0), SHRINK_S)
 	tw.set_parallel(false)
 	tw.tween_callback(func() -> void: _suspended = false)
@@ -209,7 +234,7 @@ func _process(dt: float) -> void:
 	var pstate := "-"
 	if _players.has(_player_id):
 		pstate = "havada" if _players[_player_id].jumper.is_airborne else ("⚠" if _players[_player_id].jumper.has_warning else "yerde")
-	_info.text = "SPACE zıpla | S/↓ eğil | E: dummy ele | R: reset\ncanlı %d   çember r=%.1f   oyuncu: %s   tick %d" % [_alive_ids.size(), _ring_radius, pstate, t]
+	_info.text = "SPACE zıpla | S/↓ eğil | E: rakip ele | R: reset\ntur %d   canlı %d   çember r=%.1f   oyuncu: %s" % [_round, _alive_ids.size(), _ring_radius, pstate]
 
 
 func _unhandled_input(event: InputEvent) -> void:

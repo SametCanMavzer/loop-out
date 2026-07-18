@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BotArchetype" load_steps=2 format=3 uid="uid://bipatlaarchacemi"]
+
+[ext_resource type="Script" path="res://scripts/jumper/bot_archetype.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"acemi"
+reaction_mean_ms = -210.0
+reaction_std_base_ms = 90.0
+std_round_slope = 6.0
+telegraph_fail_prob = 0.0
+quirk = 0
+exit_from = 3
+exit_to = 8
+exit_sigma_mult = 2.2
