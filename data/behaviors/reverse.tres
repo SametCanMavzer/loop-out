@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RopeBehavior" load_steps=2 format=3 uid="uid://bipatlabehreverse"]
+
+[ext_resource type="Script" path="res://scripts/rope/rope_behavior.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"reverse"
+min_round = 13
+weight = 0.8
+telegraph_ms = 600.0
+telegraph_anim = &"switch_hand"
+params = {
+"reverse": true
+}

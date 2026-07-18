@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 7 — Davranışlar** (F7a bitti; F7b RoundDirector sırada). F1–F6 tamamlandı ✅
+> Şu an: **Faz 7 — Davranışlar** (F7a, F7b bitti; F7c özel davranışlar sırada). F1–F6 tamamlandı ✅
 
 > GDD/TDD PDF'leri `pdftotext -enc UTF-8 docs/gdd.md.pdf out.txt` ile okunabilir (/mingw64/bin). GDD §4.1 tam davranış havuzu (7): normal, speed_step, sudden_stop, reverse, high_sweep, double_sweep, fake_slow. Zorluk eğrisi §4.2 balance.json'a işlendi. Özel mantık gerektirenler: sudden_stop (yarım tur durur), reverse (yön), double_sweep (çift süpürme), fake_slow (telegrafsız, tur25+); speed_step base'i kalıcı artırır.
 
@@ -25,10 +25,12 @@
   - [x] F6b: 3 arketip `.tres` + arena'da gerçek botlar (BotBrain, Rng.bots) + tur ilerlemesiyle σ büyümesi. **Editör onayı** ("botlar zıplıyor"). Denetimde 3 düzeltme: reset_intent (bayat niyet), eleme erteleme (rope.tick sırasında pozisyon değişimi → sahte MISS; miss oranı %15→%3), tüm jumper'lara zıplama görseli. İnce balans F11.
 - [ ] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram
   - [x] F7a: `rope_behavior.gd` (RopeBehavior Resource: id/min_round/weight/telegraph_ms/params) + Rope'a telegraf altyapısı (telegraph_ticks_left geri sayımı, queue_behavior, _apply_behavior speed_mult/height, base_angular_vel, behavior_telegraphed/started sinyalleri). Birim testi: `tests/test_behavior.gd`.
-  - [ ] F7b: RoundDirector (davranış seçimi: ağırlıklı rastgele Rng.behavior, max-2-ardışık, min_round, zorluk tablosu §5.1) + davranış .tres'leri
-  - [ ] F7c: Şovcu/Kopyacı arketipleri (BotBrain quirk: SHOWOFF takla, COPYCAT oyuncuyu kopyalar)
-  - [ ] F7d: dinamik dram (§4.7: early_exit_streak, zorla Acemi eleme, final 1v1 seçimi)
-  - [ ] F7e: arena'ya bağlama + [EDİTÖR KONTROLÜ]
+  - [x] F7b: generic 4 davranış `.tres` (normal/speed_step/reverse/high_sweep) + Rope etkileri (base kalıcı: speed_step tempo, reverse yön; geçici: height). Test: `tests/test_behavior.gd` (roster + etkiler).
+  - [ ] F7c: özel 3 davranış (sudden_stop yarım-tur duruş, double_sweep çift süpürme, fake_slow telegrafsız) + .tres
+  - [ ] F7d: RoundDirector (seçim: ağırlıklı rastgele Rng.behavior, max-2-ardışık, min_round, zorluk tablosu; davranışı telegraf'la kuyruğa alır)
+  - [ ] F7e: Şovcu/Kopyacı arketipleri (BotBrain quirk: SHOWOFF takla, COPYCAT oyuncuyu kopyalar)
+  - [ ] F7f: dinamik dram (§4.7: early_exit_streak, zorla Acemi eleme, final 1v1 seçimi)
+  - [ ] F7g: arena'ya bağlama + [EDİTÖR KONTROLÜ]
 - [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion

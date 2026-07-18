@@ -73,14 +73,17 @@ func _activate_pending() -> void:
 
 
 ## Davranış parametrelerini rope durumuna uygular (§4.2, veri odaklı).
+## Kalıcı etkiler base_angular_vel'e işlenir (speed_step tempo, reverse yön); geçici
+## etkiler (height, speed_mult) o davranış süresince geçerlidir.
 func _apply_behavior(b: RopeBehavior) -> void:
 	var p := b.params
+	if bool(p.get("reverse", false)):            # yön kalıcı değişir
+		base_angular_vel = -base_angular_vel
+	if p.has("base_speed_mult"):                 # tempo kalıcı artar (speed_step)
+		base_angular_vel *= float(p["base_speed_mult"])
 	var mult: float = float(p.get("speed_mult", 1.0))
 	angular_vel = base_angular_vel * mult
-	if p.has("height"):
-		height = Height.HIGH if int(p["height"]) == 1 else Height.LOW
-	else:
-		height = Height.LOW
+	height = Height.HIGH if (p.has("height") and int(p["height"]) == 1) else Height.LOW
 
 
 ## İpin bir tick süpürmesi (§4.3). Süpürülen her canlı jumper için crossing çözülür.

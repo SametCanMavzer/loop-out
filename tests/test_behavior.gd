@@ -61,9 +61,42 @@ func _process(_delta: float) -> bool:
 	if rope.angular_vel >= 0.0 or not is_equal_approx(rope.angular_vel, -base * 2.0):
 		push_error("FAIL: negatif yön korunmalı (-base*2)."); fail += 1
 
+	# --- 4) .tres roster yüklenir + etkiler doğru ---
+	var normal := load("res://data/behaviors/normal.tres") as RopeBehavior
+	var speed_step := load("res://data/behaviors/speed_step.tres") as RopeBehavior
+	var reverse := load("res://data/behaviors/reverse.tres") as RopeBehavior
+	var high_sweep := load("res://data/behaviors/high_sweep.tres") as RopeBehavior
+	if normal == null or speed_step == null or reverse == null or high_sweep == null:
+		push_error("FAIL: davranış .tres'leri yüklenemedi."); fail += 1
+	elif speed_step.min_round != 6 or reverse.min_round != 13:
+		push_error("FAIL: .tres min_round değerleri yanlış."); fail += 1
+	else:
+		# speed_step: base KALICI artar (iki kez → 1.08²)
+		rope.reset(0.0, base)
+		rope.queue_behavior(speed_step, 0)
+		rope.queue_behavior(speed_step, 0)
+		if not is_equal_approx(rope.base_angular_vel, base * 1.08 * 1.08):
+			push_error("FAIL: speed_step base'i kalıcı artırmalı (1.08²)."); fail += 1
+		# reverse: yön kalıcı çevrilir
+		rope.reset(0.0, base)
+		rope.queue_behavior(reverse, 0)
+		if not is_equal_approx(rope.base_angular_vel, -base) or rope.angular_vel >= 0.0:
+			push_error("FAIL: reverse base yönünü çevirmeli."); fail += 1
+		# high_sweep: HIGH, base değişmez
+		rope.reset(0.0, base)
+		rope.queue_behavior(high_sweep, 0)
+		if rope.height != Rope.Height.HIGH or not is_equal_approx(rope.base_angular_vel, base):
+			push_error("FAIL: high_sweep HIGH yapmalı, base'i değiştirmemeli."); fail += 1
+		# normal: base'i korur (kalıcı hızı sıfırlamaz), height LOW
+		rope.reset(0.0, base)
+		rope.queue_behavior(speed_step, 0)      # base artar
+		rope.queue_behavior(normal, 0)          # normal base'i korumalı
+		if not is_equal_approx(rope.angular_vel, base * 1.08):
+			push_error("FAIL: normal kalıcı hızı korumalı (base*1.08)."); fail += 1
+
 	rope.free()
 	if fail == 0:
-		print("TEST BEHAVIOR OK (telegraf geri sayımı, davranış uygulama, sinyaller, yön)")
+		print("TEST BEHAVIOR OK (telegraf, uygulama, sinyaller, yön, .tres roster: speed_step/reverse/high_sweep/normal)")
 	else:
 		print("TEST BEHAVIOR FAILED: %d hata" % fail)
 	quit(fail)

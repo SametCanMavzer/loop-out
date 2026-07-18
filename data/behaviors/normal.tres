@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RopeBehavior" load_steps=2 format=3 uid="uid://bipatlabehnormal"]
+
+[ext_resource type="Script" path="res://scripts/rope/rope_behavior.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"normal"
+min_round = 1
+weight = 1.0
+telegraph_ms = 0.0
+telegraph_anim = &""
+params = {}

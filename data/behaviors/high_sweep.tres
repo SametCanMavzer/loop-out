@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RopeBehavior" load_steps=2 format=3 uid="uid://bipatlabehhigh"]
+
+[ext_resource type="Script" path="res://scripts/rope/rope_behavior.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"high_sweep"
+min_round = 13
+weight = 1.0
+telegraph_ms = 600.0
+telegraph_anim = &"raise"
+params = {
+"height": 1
+}
