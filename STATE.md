@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 4 — Jumper** (F4a bitti; F4b kod hazır, HİS TESTİ bekliyor). F1–F3 tamamlandı ✅
+> Şu an: **Faz 5 — Eleme** (henüz başlanmadı). F1–F4 tamamlandı ✅
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
@@ -12,9 +12,9 @@
 - [x] **F3 İp:** RopeState (yalnız Normal) + crossing matematiği + süpürme gölgesi
   - [x] F3a: `scripts/rope/rope.gd` (Rope) — RopeState verisi (angle/angular_vel/height/mode) + açısal `swept_past` crossing (fizik motorsuz, TAU sarma-güvenli) + PERFECT/GRAZE/MISS sınıflandırma + HIGH/E7 (ducking nötr, airborne/yerde ıskalama). Config'e tipli `perfect_ms(round)`/`graze_ms(round)` getter'ları eklendi (§4.5 daralan/sudden-death graze). Birim testi: `tests/test_rope.gd` + Config getter'ları `smoke_f1.gd`'de.
   - [x] F3b: süpürme gölgesi + görsel ip dönüşü — `scripts/rope/rope_visual.gd` (RopeVisual: `_process`'te `lerp_angle` + physics interpolation fraction, LOW/HIGH yükseklik), `scenes/arena/rope_spinner.tscn` (bar + blob gölge), dev demo `scenes/dev/rope_demo.tscn`. **Editör onayı alındı** (akıcı dönüş + gölge + LOW/HIGH doğrulandı).
-- [ ] **F4 Jumper:** zıplama + zamanlama sınıflandırma + input buffer → GDD Faz 1 HİS TESTİ
+- [x] **F4 Jumper:** zıplama + zamanlama sınıflandırma + input buffer → GDD Faz 1 HİS TESTİ ✅
   - [x] F4a: `input_source.gd` (InputSource arayüzü), `human_input.gd` (poll→InputQueue), `jumper_tuning.gd` (tick cinsi zamanlama, Config'ten enjekte), `jumper.gd` (Jumper: airborne tick sayacı + hold→high "geç karar" + duck release toleransı + input buffer; Rope crossing hedefi). Config'e `jumper_tuning()` getter'ı. Birim testi: `tests/test_jumper.gd` + smoke'ta tuning doğrulaması. Autoload'dan bağımsız (test-edilebilir).
-  - [ ] F4b: oynanabilir sahne — KOD HAZIR, HİS TESTİ bekliyor. `scenes/dev/play_test.tscn` + `scripts/dev/play_test.gd` (TickClock+Rope+Jumper+InputQueue canlı; SPACE zıpla/basılı-tut yüksek, S/↓ eğil; crossing→PERFECT/GRAZE/MISS geri bildirim; EventBus köprüsü). Jumper'a görsel `air_progress()`. Headless runtime-temiz. → GDD Faz 1 **HİS TESTİ** [EDİTÖR KONTROLÜ] (aşağıda)
+  - [x] F4b: oynanabilir sahne `scenes/dev/play_test.tscn` — GDD Faz 1 **HİS TESTİ onaylandı** ("his oturdu"). Bu turda 3 düzeltme: (1) yüksek zıplama görseli hız-tabanlı (pop yok), (2) crossing Model A (havada=en az GRAZE), (3) jumper dünya konumu rope rotasyon konvansiyonuna hizalandı (görsel/mantık geçiş uyumu — asıl his bugı). NOT: play_test dev kamera çerçevelemesi kaba (ip tam sığmıyor); gerçek arena kamerası F8.
 - [ ] **F5 Eleme:** sendeleme+af + eleme impuls + daralan çember + yeniden dizilim
 - [ ] **F6 Botlar:** InputSource + Acemi/Panikçi/Sağlam + zorluk eğrisi bağlantısı
 - [ ] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram
