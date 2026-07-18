@@ -16,6 +16,8 @@ var _lookahead_ticks: int = 36
 var _player: Object = null      # Kopyacı için: duck-typed jump_input_tick, is_airborne
 var _copy_delay_ticks: int = 12  # Kopyacı: oyuncu + bu gecikme
 var _forced_sigma_mult: float = 1.0  # dinamik dram müdahalesi (§4.7): σ zorla şişir/kıs
+var _duck_release_at: int = -1       # yüksek süpürme: eğilmeyi bu tick'te bırak
+const _DUCK_HOLD_TICKS := 16         # eğilmeyi geçiş penceresini örtecek kadar tut
 
 var _intent_tick: int = -1
 var _handled_cross: int = -1
@@ -57,10 +59,18 @@ func poll(tick: int) -> Array[InputCommand]:
 	if _intent_tick < 0 and ttc <= _lookahead_ticks and absi(t_cross - _handled_cross) > _lookahead_ticks:
 		_intent_tick = _sample_intent(t_cross, tick)
 		_handled_cross = t_cross
-	# Niyet tick'i geldi → kısa zıpla (press+release aynı tick = normal zıplama, hold yok).
+	# Bekleyen eğilme bırakma (yüksek süpürme sonrası ayağa kalk).
+	if _duck_release_at >= 0 and tick >= _duck_release_at:
+		out.append(InputCommand.new(tick, &"duck", false))
+		_duck_release_at = -1
+	# Niyet tick'i geldi → ip YÜKSEK ise eğil (tut+geç bırak), değilse kısa zıpla.
 	if _intent_tick >= 0 and tick >= _intent_tick:
-		out.append(InputCommand.new(tick, &"jump", true))
-		out.append(InputCommand.new(tick, &"jump", false))
+		if int(_rope.height) == int(Rope.Height.HIGH):
+			out.append(InputCommand.new(tick, &"duck", true))
+			_duck_release_at = tick + _DUCK_HOLD_TICKS   # geçişi örtecek kadar tut
+		else:
+			out.append(InputCommand.new(tick, &"jump", true))
+			out.append(InputCommand.new(tick, &"jump", false))
 		_intent_tick = -1
 	return out
 

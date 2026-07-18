@@ -16,6 +16,8 @@ var ring: Dictionary = {}
 var economy: Dictionary = {}
 var bots: Dictionary = {}
 var drama: Dictionary = {}
+var behavior_select_interval_ms: float = 2000.0
+var behavior_max_consecutive: int = 2
 
 var _loaded: bool = false
 
@@ -43,6 +45,8 @@ func _load() -> void:
 	economy = d.get("economy", {})
 	bots = d.get("bots", {})
 	drama = d.get("drama", {})
+	behavior_select_interval_ms = float(d.get("behavior_select_interval_ms", 2000.0))
+	behavior_max_consecutive = int(d.get("behavior_max_consecutive", 2))
 	_loaded = true
 	_validate()
 	print("[Config] balance.json yüklendi (version=%d)." % version)

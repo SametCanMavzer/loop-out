@@ -5,6 +5,7 @@ extends SceneTree
 class FakeRope extends RefCounted:
 	var angle: float = 0.0
 	var angular_vel: float = 0.0
+	var height: int = 0
 
 class FakeJumper extends RefCounted:
 	var angle_pos: float = 0.0

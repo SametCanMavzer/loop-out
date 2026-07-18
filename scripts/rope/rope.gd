@@ -22,6 +22,7 @@ const TICK_MS := 1000.0 / TickClock.TICKS_PER_SECOND
 var angle: float = 0.0            # radyan [0,TAU)
 var angular_vel: float = 0.0     # rad/s; işareti dönüş yönü
 var base_angular_vel: float = 0.0  # davranış çarpanları buna uygulanır (dönüş yönü işaret)
+var max_abs_speed: float = 0.0     # base hız tavanı (rad/s, 0 = kısıt yok; §5.1 max_rpm)
 var height: Height = Height.LOW
 var mode: Mode = Mode.NORMAL
 
@@ -94,6 +95,8 @@ func _apply_behavior(b: RopeBehavior) -> void:
 		base_angular_vel = -base_angular_vel
 	if p.has("base_speed_mult"):                 # tempo kalıcı artar (speed_step)
 		base_angular_vel *= float(p["base_speed_mult"])
+	if max_abs_speed > 0.0 and absf(base_angular_vel) > max_abs_speed:
+		base_angular_vel = signf(base_angular_vel) * max_abs_speed  # tavan (§5.1 max_rpm)
 	height = Height.HIGH if (p.has("height") and int(p["height"]) == 1) else Height.LOW
 
 	var special := StringName(p.get("special", &""))

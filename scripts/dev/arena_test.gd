@@ -7,6 +7,8 @@ extends Node3D
 const N_START := 8
 const PLAYER_ANGLE := PI / 2.0
 const SHRINK_S := 0.6          # yeniden dizilim tween süresi (§4.4)
+const DEMO_START_ROUND := 13   # demo: davranış çeşitliliği hemen görünsün (hız/duruş/ters/yüksek)
+const DEMO_ROUND_INTERVAL := 360  # demo tur ilerleme aralığı (tick)
 
 # Zıplama görseli (play_test ile aynı hız modeli)
 const JUMP_V0 := 6.0
@@ -28,40 +30,62 @@ var _flying := []           # elenen gövdeler: {node, vel:Vector3, angvel:float
 var _reassign_tween: Tween
 var _arch_by_id := {}       # id -> BotArchetype (oyuncu: null)
 var _pending_elim: Array = []   # bu tick elenecekler (rope.tick sonrası toplu uygulanır)
+var _director: RoundDirector
+var _drama := DramaDirector.new()
+var _behavior_flash := 0.0
 
 @onready var _input: InputQueue = $Input
 @onready var _rope_viz: RopeVisual = $RopeSpinner
 @onready var _info: Label = $UI/Info
 @onready var _feedback: Label = $UI/Feedback
+@onready var _behavior_label: Label = $UI/Behavior
 
 var _flash := 0.0
 
 
 func _ready() -> void:
 	Rng.seed_round(12345)
+	_round = DEMO_START_ROUND   # demo: davranışları hemen göster
 	_r_min = float(Config.ring.get("r_min", 2.2))
 	_r_max = float(Config.ring.get("r_max", 9.0))
 
 	_clock = TickClock.new(); add_child(_clock)
 	_rope = Rope.new(); add_child(_rope)
-	_rope.reset(0.0, Rope.rpm_to_rad_per_sec(25.0))
+	_rope.reset(0.0, Rope.rpm_to_rad_per_sec(float(Config.rope.get("start_rpm", 25))))
+	_rope.max_abs_speed = Rope.rpm_to_rad_per_sec(float(Config.rope.get("max_rpm", 60)))  # §5.1 tavan
 	_rope_viz.bind(_rope)
 	_rope_viz.scale = Vector3(_r_max / 6.0, 1.0, 1.0)   # rope çubuğu (6 birim) r_max'a ulaşsın
 	_rope.crossed.connect(_on_crossed)
+	_rope.behavior_telegraphed.connect(_on_telegraphed)
+	_rope.behavior_started.connect(_on_behavior_started)
 	_input.setup(_clock)
 
 	$UI/Restart.pressed.connect(func() -> void: get_tree().reload_current_scene())
 
-	# Bot arketip dağıtımı (7 bot): karışık Acemi/Panikçi/Sağlam.
+	# Bot arketip dağıtımı (7 bot): 5 arketipin karışımı (Şovcu/Kopyacı dahil).
 	var acemi := load("res://data/archetypes/acemi.tres")
 	var panik := load("res://data/archetypes/panikci.tres")
 	var saglam := load("res://data/archetypes/saglam.tres")
-	var dist := [saglam, panik, acemi, acemi, panik, saglam, acemi]  # id 1..7
+	var sovcu := load("res://data/archetypes/sovcu.tres")
+	var kopya := load("res://data/archetypes/kopyaci.tres")
+	var dist := [saglam, panik, acemi, sovcu, kopya, acemi, saglam]  # id 1..7
 	for i in N_START:
 		_arch_by_id[i] = null if i == _player_id else dist[(i - 1) % dist.size()]
 		_spawn_jumper(i)
 	_alive_ids = range(N_START)
 	_snap_positions()
+
+	# Davranış yönetmeni: havuz + zorluk tier'ları Config'ten.
+	var pool: Array = []
+	for bid in ["normal", "speed_step", "sudden_stop", "reverse", "high_sweep", "double_sweep", "fake_slow"]:
+		pool.append(load("res://data/behaviors/%s.tres" % bid))
+	var tiers: Array = []
+	for tier in Config.difficulty_rounds:
+		tiers.append({"from": int(tier.get("from", 1)), "ids": tier.get("behaviors", [])})
+	_director = RoundDirector.new()
+	_director.setup(Rng.behavior, pool, tiers,
+		Config.ms_to_ticks(Config.behavior_select_interval_ms), Config.behavior_max_consecutive)
+	_drama.setup(int(Config.drama.get("streak_len", 2)))
 
 
 func _spawn_jumper(id: int) -> void:
@@ -71,7 +95,9 @@ func _spawn_jumper(id: int) -> void:
 		j.setup(HumanInput.new(_input), Config.jumper_tuning())
 	else:
 		var brain := BotBrain.new()   # gerçek rakip: BotBrain, Rng.bots stream (§4.6/§4.8)
-		brain.setup(Rng.bots, _arch_by_id[id], _rope, j, _round, float(Config.bots.get("lookahead_ms", 600)))
+		var pref: Object = _players[_player_id].jumper if _players.has(_player_id) else null
+		brain.setup(Rng.bots, _arch_by_id[id], _rope, j, _round,
+			float(Config.bots.get("lookahead_ms", 600)), pref, 200.0)  # pref: Kopyacı için oyuncu
 		j.setup(brain, Config.jumper_tuning())
 	var viz := Node3D.new(); add_child(viz)
 	var cap := MeshInstance3D.new()
@@ -100,13 +126,18 @@ func _snap_positions() -> void:
 func _physics_process(_dt: float) -> void:
 	_clock.advance()
 	var t := _clock.current_tick
-	# Demo tur ilerlemesi: her 720 tick (~12sn) σ büyür → doğal eleme (zorluk eğrisi).
-	if t > 0 and t % 720 == 0:
+	# Demo tur ilerlemesi: σ büyür + yeni davranışlar açılır (zorluk eğrisi).
+	if t > 0 and t % DEMO_ROUND_INTERVAL == 0:
 		_round += 1
 		for id in _alive_ids:
 			var src = _players[id].jumper.input_source
 			if src is BotBrain:
 				src.set_round(_round)
+	# Davranış seçimi: aralıkta bir davranış → rope'a telegraf'la kuyruğa al (§4.2).
+	if _director != null and not _suspended:
+		var beh := _director.tick(t, _round)
+		if beh != null:
+			_rope.queue_behavior(beh, Config.ms_to_ticks(beh.telegraph_ms))
 	for id in _alive_ids:
 		_players[id].jumper.tick(t)
 	# İp her zaman döner (§4.4); tween sırasında yalnız crossing askıda → boş hedef listesi.
@@ -184,6 +215,36 @@ func _flush_eliminations() -> void:
 	_pending_elim.clear()
 	if any:
 		_reassign()
+		_apply_drama()
+
+
+## Dinamik dram (§4.7): az bot kalınca final adayını koru (σ kıs). Kurtarma streak'i F9 (SaveGame).
+func _apply_drama() -> void:
+	var infos: Array = []
+	for id in _alive_ids:
+		if id == _player_id:
+			continue
+		var br = _players[id].jumper.input_source
+		if br is BotBrain:
+			infos.append({"id": br.archetype_id(), "sigma": br.base_sigma(), "ref": br})
+	if not infos.is_empty() and infos.size() <= 2:
+		var cand := _drama.pick_final_candidate(infos)
+		if not cand.is_empty():
+			cand.ref.set_sigma_override(0.5)   # final adayı daha tutarlı → 1v1'e ulaşır
+
+
+func _on_telegraphed(id: StringName) -> void:
+	EventBus.behavior_telegraphed.emit(id)
+	_behavior_label.text = "⚠ " + String(id).to_upper()
+	_behavior_label.modulate = Color(1.0, 0.8, 0.2, 1.0)
+	_behavior_flash = 1.6
+
+
+func _on_behavior_started(id: StringName) -> void:
+	EventBus.behavior_started.emit(id)
+	_behavior_label.text = String(id).to_upper()
+	_behavior_label.modulate = Color(0.85, 0.9, 1.0, 1.0)
+	_behavior_flash = 1.2
 
 
 func _reassign() -> void:
@@ -234,6 +295,10 @@ func _process(dt: float) -> void:
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - dt * 1.2)
 		_feedback.modulate.a = _flash
+	# Davranış/telegraf yazısını soldur
+	if _behavior_flash > 0.0:
+		_behavior_flash = maxf(0.0, _behavior_flash - dt * 0.5)
+		_behavior_label.modulate.a = minf(_behavior_flash, 1.0)
 
 	# Elenen gövdeleri uçur + soldur
 	var still := []
