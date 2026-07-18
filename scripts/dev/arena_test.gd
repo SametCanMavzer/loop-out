@@ -25,6 +25,7 @@ var _r_min := 2.2
 var _r_max := 9.0
 var _ring_radius := 9.0
 var _flying := []           # elenen gövdeler: {node, vel:Vector3, angvel:float, life:float}
+var _reassign_tween: Tween
 
 # oyuncu zıplama görseli
 var _viz_vy := 0.0
@@ -90,11 +91,12 @@ func _physics_process(_dt: float) -> void:
 	var t := _clock.current_tick
 	for id in _alive_ids:
 		_players[id].jumper.tick(t)
+	# İp her zaman döner (§4.4); tween sırasında yalnız crossing askıda → boş hedef listesi.
+	var targets := []
 	if not _suspended:
-		var targets := []
 		for id in _alive_ids:
 			targets.append(_players[id].jumper)
-		_rope.tick(t, Config.perfect_ms(_round), Config.graze_ms(_round), targets)
+	_rope.tick(t, Config.perfect_ms(_round), Config.graze_ms(_round), targets)
 	_rope_viz.on_logic_step()
 
 
@@ -129,6 +131,7 @@ func _eliminate(id: int) -> void:
 		"node": viz, "vel": dir * 7.0 + Vector3.UP * 3.0,
 		"angvel": Rng.cosmetic.randf_range(-8, 8), "life": 1.6,
 	})
+	e.jumper.queue_free()   # öksüz mantık node'unu temizle
 	_players.erase(id)
 	_reassign()
 
@@ -141,7 +144,10 @@ func _reassign() -> void:
 	_ring_radius = Ring.radius_for(n, _r_min, _r_max)
 	var angles := Ring.distribute_angles(n, pidx, PLAYER_ANGLE)
 	_suspended = true   # tween boyunca crossing askıda (§4.4 adalet)
+	if _reassign_tween != null and _reassign_tween.is_valid():
+		_reassign_tween.kill()   # hızlı E'de üst üste binen tween'leri önle
 	var tw := create_tween().set_parallel(true)
+	_reassign_tween = tw
 	for i in n:
 		var id = _alive_ids[i]
 		_players[id].jumper.angle_pos = angles[i]   # mantık son konuma hemen geçer
