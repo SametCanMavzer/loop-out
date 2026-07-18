@@ -77,6 +77,16 @@ func _process(_delta: float) -> bool:
 	if _events.size() != 1 or _events[0][1] != Rope.CrossResult.MISS:
 		push_error("FAIL: HIGH+airborne MISS olmalı (E7)."); fail += 1
 
+	# --- 5) is_alive=false atlanır; aynı tick'te çok hedef (biri süpürülür biri süpürülmez) ---
+	_events.clear()
+	rope.reset(0.0, 1.0); rope.height = Rope.Height.LOW
+	var dead := FakeJumper.new(8, mid); dead.is_airborne = true; dead.is_alive = false
+	var swept := FakeJumper.new(9, mid); swept.is_airborne = true; swept.jump_input_tick = 100
+	var outside := FakeJumper.new(10, PI); outside.is_airborne = true  # step dışında → süpürülmez
+	rope.tick(100, 90, 160, [dead, swept, outside])
+	if _events.size() != 1 or _events[0][0] != 9:
+		push_error("FAIL: çok-hedef/ölü atlama yanlış (yalnız id 9 beklenir, gelen %s)." % str(_events)); fail += 1
+
 	rope.free()
 	if fail == 0:
 		print("TEST ROPE OK (crossing geo + sarma/yön, sınıflandırma, tur-graze, HIGH/E7)")

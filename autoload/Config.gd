@@ -69,9 +69,13 @@ static func ms_to_ticks(ms: float) -> int:
 
 ## Verilen tura ait sendeleme rejimi (§4.5): from_round'u <= round_no olan en yükseği.
 func _regime_for(round_no: int) -> Dictionary:
+	# from_round'u <= round_no olanlar arasından EN BÜYÜK from_round (dizi sırasından bağımsız).
 	var chosen: Dictionary = {}
+	var best_from := -1
 	for r in stumble_regimes:
-		if int((r as Dictionary).get("from_round", 1)) <= round_no:
+		var f := int((r as Dictionary).get("from_round", 1))
+		if f <= round_no and f > best_from:
+			best_from = f
 			chosen = r
 	return chosen
 
