@@ -12,6 +12,14 @@ var _jumper: Jumper
 var _round := 1
 var _flash := 0.0
 
+# Zıplama görseli — hız tabanlı (pop yok). basılı tutunca (high) yerçekimi azalır → yumuşak süzülme.
+const JUMP_V0 := 6.0
+const GRAV_NORMAL := 28.0
+const GRAV_HIGH := 14.0
+var _viz_y := 0.0
+var _viz_vy := 0.0
+var _last_jump_tick := -999
+
 @onready var _input: InputQueue = $Input
 @onready var _rope_viz: RopeVisual = $RopeSpinner
 @onready var _jumper_viz: Node3D = $JumperViz
@@ -48,9 +56,19 @@ func _process(dt: float) -> void:
 	if _clock == null:
 		return
 	var t := _clock.current_tick
-	# Zıplama arkı (sin) + eğilme squash — yalnız görsel.
-	var y := sin(_jumper.air_progress(t) * PI) * 1.4
-	_jumper_viz.position.y = y
+	# Zıplama görseli: yeni zıplamada ilk hızı ver; her karede hız-entegre et (pop yok).
+	if _jumper.is_airborne and _jumper.jump_input_tick != _last_jump_tick:
+		_last_jump_tick = _jumper.jump_input_tick
+		_viz_vy = JUMP_V0
+		_viz_y = 0.0
+	var g := GRAV_HIGH if _jumper.is_high() else GRAV_NORMAL   # basılı tut → daha yumuşak/uzun süzülme
+	_viz_vy -= g * dt
+	_viz_y += _viz_vy * dt
+	if not _jumper.is_airborne:
+		_viz_y = move_toward(_viz_y, 0.0, 8.0 * dt)   # inişte yere otur
+		_viz_vy = 0.0
+	_viz_y = maxf(_viz_y, 0.0)
+	_jumper_viz.position.y = _viz_y
 	_jumper_viz.scale.y = 0.6 if _jumper.is_ducking else 1.0
 	if _flash > 0.0:
 		_flash = maxf(0.0, _flash - dt * 1.5)

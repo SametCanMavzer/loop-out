@@ -66,12 +66,9 @@ func _apply(cmd: InputCommand, ct: int) -> void:
 				_duck_release_tick = ct
 
 
-## Görsel için havada ilerleme 0..1 (yalnız çizim; mantığı/determinizmi etkilemez).
-func air_progress(ct: int) -> float:
-	if not is_airborne:
-		return 0.0
-	var air := _t.high_jump_air if _jump_high else _t.jump_air
-	return clampf(float(ct - jump_input_tick) / float(maxi(air, 1)), 0.0, 1.0)
+## Yüksek zıplama aktif mi (yalnız görsel/geri bildirim; mantık zaten air ile işler).
+func is_high() -> bool:
+	return is_airborne and _jump_high
 
 
 func _start_jump(ct: int, held: bool) -> void:
