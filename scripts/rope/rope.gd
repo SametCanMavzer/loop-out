@@ -30,6 +30,13 @@ var telegraph_ticks_left: int = 0
 var current_behavior_id: StringName = &"normal"
 var _pending: RopeBehavior = null
 
+# Özel davranış alt-durumu (F7c: sudden_stop, fake_slow, double_sweep)
+var _effect_ticks_left: int = 0     # zamanlı hız etkisi kalan tick (0 = yok)
+var _effect_restore_vel: float = 0.0  # etki bitince dönülecek hız
+var _double_active: bool = false    # double_sweep: her süpürme ikinci kez çözülür
+var _double_gap: int = 20           # iki süpürme arası tick
+var _deferred: Array = []           # {tick:int, target:Object} ikinci süpürme çözümleri
+
 
 ## rpm → rad/s (yön için işaret ayrıca verilir).
 static func rpm_to_rad_per_sec(rpm: float) -> float:
@@ -45,6 +52,9 @@ func reset(start_angle: float = 0.0, vel: float = 0.0) -> void:
 	telegraph_ticks_left = 0
 	current_behavior_id = &"normal"
 	_pending = null
+	_effect_ticks_left = 0
+	_double_active = false
+	_deferred.clear()
 
 
 ## Davranış hızlarının uygulanacağı temel hız (yön işaretli). Director tur ile ramplar.
@@ -73,17 +83,40 @@ func _activate_pending() -> void:
 
 
 ## Davranış parametrelerini rope durumuna uygular (§4.2, veri odaklı).
-## Kalıcı etkiler base_angular_vel'e işlenir (speed_step tempo, reverse yön); geçici
-## etkiler (height, speed_mult) o davranış süresince geçerlidir.
+## Kalıcı etkiler base_angular_vel'e işlenir (speed_step tempo, reverse yön); geçici/zamanlı
+## etkiler (height, sudden_stop, fake_slow, double_sweep) o davranış süresince.
 func _apply_behavior(b: RopeBehavior) -> void:
 	var p := b.params
+	# Yeni davranış: eski özel alt-durumları temizle.
+	_effect_ticks_left = 0
+	_double_active = false
 	if bool(p.get("reverse", false)):            # yön kalıcı değişir
 		base_angular_vel = -base_angular_vel
 	if p.has("base_speed_mult"):                 # tempo kalıcı artar (speed_step)
 		base_angular_vel *= float(p["base_speed_mult"])
-	var mult: float = float(p.get("speed_mult", 1.0))
-	angular_vel = base_angular_vel * mult
 	height = Height.HIGH if (p.has("height") and int(p["height"]) == 1) else Height.LOW
+
+	var special := StringName(p.get("special", &""))
+	match special:
+		&"sudden_stop":   # yarım tur süre durur, sonra base'e döner (§4.1)
+			angular_vel = 0.0
+			_effect_restore_vel = base_angular_vel
+			if not is_zero_approx(base_angular_vel):
+				_effect_ticks_left = int(ceil(PI / (absf(base_angular_vel) * TICK_DT)))
+		&"fake_slow":     # yavaşlar gibi yapıp aniden hızlanır — telegrafsız (§4.1)
+			angular_vel = base_angular_vel * float(p.get("slow_mult", 0.5))
+			_effect_restore_vel = base_angular_vel
+			_effect_ticks_left = _ms_to_ticks(float(p.get("fake_slow_ms", 600.0)))
+		&"double_sweep":  # her süpürme ikinci kez çözülür → tek zıplamayla ikisini örtmek gerek
+			_double_active = true
+			_double_gap = _ms_to_ticks(float(p.get("double_gap_ms", 333.0)))
+			angular_vel = base_angular_vel * float(p.get("speed_mult", 1.0))
+		_:
+			angular_vel = base_angular_vel * float(p.get("speed_mult", 1.0))
+
+
+static func _ms_to_ticks(ms: float) -> int:
+	return int(round(ms * TickClock.TICKS_PER_SECOND / 1000.0))
 
 
 ## İpin bir tick süpürmesi (§4.3). Süpürülen her canlı jumper için crossing çözülür.
@@ -96,6 +129,14 @@ func tick(current_tick: int, perfect_ms: int, graze_ms: int, targets: Array) -> 
 		telegraph_ticks_left -= 1
 		if telegraph_ticks_left == 0:
 			_activate_pending()
+	# Zamanlı hız etkisi (sudden_stop/fake_slow): süre bitince base'e döner.
+	if _effect_ticks_left > 0:
+		_effect_ticks_left -= 1
+		if _effect_ticks_left == 0:
+			angular_vel = _effect_restore_vel
+	# Ertelenmiş ikinci süpürmeler (double_sweep) — hareketten bağımsız çözülür.
+	_process_deferred(current_tick, perfect_ms, graze_ms)
+
 	var prev := angle
 	var step := absf(angular_vel) * TICK_DT
 	angle = wrapf(angle + angular_vel * TICK_DT, 0.0, TAU)
@@ -107,6 +148,22 @@ func tick(current_tick: int, perfect_ms: int, graze_ms: int, targets: Array) -> 
 			continue
 		if swept_past(prev, t.angle_pos, step, dir):
 			_resolve_crossing(current_tick, perfect_ms, graze_ms, t)
+			if _double_active:   # ikinci süpürmeyi gap tick sonrasına ertele
+				_deferred.append({"tick": current_tick + _double_gap, "target": t})
+
+
+## Vadesi gelen ikinci süpürmeleri (double_sweep) çözer.
+func _process_deferred(current_tick: int, perfect_ms: int, graze_ms: int) -> void:
+	if _deferred.is_empty():
+		return
+	var still: Array = []
+	for d in _deferred:
+		if d.tick <= current_tick:
+			if d.target.is_alive:
+				_resolve_crossing(current_tick, perfect_ms, graze_ms, d.target)
+		else:
+			still.append(d)
+	_deferred = still
 
 
 ## prev'den `step` radyan `dir` yönünde süpürülürken target açısı yolun içinde mi?

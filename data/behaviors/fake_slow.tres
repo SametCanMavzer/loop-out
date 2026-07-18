@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RopeBehavior" load_steps=2 format=3 uid="uid://bipatlabehfake"]
+
+[ext_resource type="Script" path="res://scripts/rope/rope_behavior.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"fake_slow"
+min_round = 30
+weight = 0.5
+telegraph_ms = 0.0
+telegraph_anim = &""
+params = {
+"fake_slow_ms": 600.0,
+"slow_mult": 0.5,
+"special": &"fake_slow"
+}
