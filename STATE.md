@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 3 — İp** (F3a bitti; F3b süpürme gölgesi sırada). F1, F2 tamamlandı ✅
+> Şu an: **Faz 3 — İp** (F3a bitti; F3b kod hazır, editör onayı bekliyor). F1, F2 tamamlandı ✅
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
@@ -11,7 +11,7 @@
   - NOT: canlı sahnede `TickClock.start()` + `InputQueue.setup()` bağlanması F5'te (GameState run döngüsü) yapılacak — henüz simüle edilecek bir şey yok. Determinizm sözleşmesi (advance()/poll() doğrudan çağrılabilir) test edildi.
 - [ ] **F3 İp:** RopeState (yalnız Normal) + crossing matematiği + süpürme gölgesi
   - [x] F3a: `scripts/rope/rope.gd` (Rope) — RopeState verisi (angle/angular_vel/height/mode) + açısal `swept_past` crossing (fizik motorsuz, TAU sarma-güvenli) + PERFECT/GRAZE/MISS sınıflandırma + HIGH/E7 (ducking nötr, airborne/yerde ıskalama). Config'e tipli `perfect_ms(round)`/`graze_ms(round)` getter'ları eklendi (§4.5 daralan/sudden-death graze). Birim testi: `tests/test_rope.gd` + Config getter'ları `smoke_f1.gd`'de.
-  - [ ] F3b: süpürme gölgesi + görsel ip dönüşü (rope_spinner, _process interpolasyonu) → [EDİTÖR KONTROLÜ]
+  - [ ] F3b: süpürme gölgesi + görsel ip dönüşü — KOD HAZIR, editör onayı bekliyor. `scripts/rope/rope_visual.gd` (RopeVisual: mantık açısını `_process`'te `lerp_angle` + physics interpolation fraction ile yumuşatır; LOW/HIGH yükseklik), `scenes/arena/rope_spinner.tscn` (bar + blob gölge), dev demo: `scenes/dev/rope_demo.tscn` + `scripts/dev/rope_demo.gd`. Headless çalıştırma runtime-temiz. → [EDİTÖR KONTROLÜ] (aşağıda)
 - [ ] **F4 Jumper:** zıplama + zamanlama sınıflandırma + input buffer → GDD Faz 1 HİS TESTİ
 - [ ] **F5 Eleme:** sendeleme+af + eleme impuls + daralan çember + yeniden dizilim
 - [ ] **F6 Botlar:** InputSource + Acemi/Panikçi/Sağlam + zorluk eğrisi bağlantısı
@@ -26,7 +26,7 @@
 - [ ] **F15 Yayın:** export + itch + Poki/CrazyGames başvuru
 
 ## Bekleyen [EDİTÖR KONTROLÜ]
-(yok)
+- **F3b-KAPI:** Godot editöründe `scenes/dev/rope_demo.tscn`'i aç → **Play (F6/sahneyi çalıştır)**. Görülmesi gereken: turuncu ip çubuğu merkez etrafında **akıcı** (takılmadan) dönüyor; altında koyu **süpürme gölgesi** ip ile birlikte dönüyor; ~2.5 sn'de bir çubuk yükselip alçalıyor (LOW↔HIGH); sol üstte tick/açı/yükseklik/FPS etiketi güncelleniyor. Sonucu tek cümleyle bildir (onay / "şu oldu: ..."). Onay gelmeden F3 tamamlanmaz.
 
 ## Bilinen buglar
 (yok)
