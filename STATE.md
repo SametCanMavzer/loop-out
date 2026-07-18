@@ -1,6 +1,8 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 7 — Davranışlar** (henüz başlanmadı). F1–F6 tamamlandı ✅
+> Şu an: **Faz 7 — Davranışlar** (F7a bitti; F7b RoundDirector sırada). F1–F6 tamamlandı ✅
+
+> ⚠ GDD §4.1 tam ip davranış listesi `docs/gdd.md.pdf`'ten okunamıyor (poppler yok). Sistem veri-odaklı; bilinen 5 davranışla (normal/speed_step/sudden_stop/double_sweep/fake_slow) kuruluyor, eksik 2 davranış GDD listesi gelince eklenecek (yeni .tres).
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
@@ -22,6 +24,11 @@
   - [x] F6a: `bot_archetype.gd` (BotArchetype Resource) + `bot_brain.gd` (BotBrain extends InputSource — Rng.bots'tan niyet tick'i örnekleme, sarma-güvenli t_cross tahmini, zorluk eğrisi σ(round), Acemi exit σ şişme). Autoload'suz (rng/rope/jumper enjekte). Birim testi: `tests/test_bot.gd` (determinizm, geçiş penceresi, InputSource sözleşmesi/E12).
   - [x] F6b: 3 arketip `.tres` + arena'da gerçek botlar (BotBrain, Rng.bots) + tur ilerlemesiyle σ büyümesi. **Editör onayı** ("botlar zıplıyor"). Denetimde 3 düzeltme: reset_intent (bayat niyet), eleme erteleme (rope.tick sırasında pozisyon değişimi → sahte MISS; miss oranı %15→%3), tüm jumper'lara zıplama görseli. İnce balans F11.
 - [ ] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram
+  - [x] F7a: `rope_behavior.gd` (RopeBehavior Resource: id/min_round/weight/telegraph_ms/params) + Rope'a telegraf altyapısı (telegraph_ticks_left geri sayımı, queue_behavior, _apply_behavior speed_mult/height, base_angular_vel, behavior_telegraphed/started sinyalleri). Birim testi: `tests/test_behavior.gd`.
+  - [ ] F7b: RoundDirector (davranış seçimi: ağırlıklı rastgele Rng.behavior, max-2-ardışık, min_round, zorluk tablosu §5.1) + davranış .tres'leri
+  - [ ] F7c: Şovcu/Kopyacı arketipleri (BotBrain quirk: SHOWOFF takla, COPYCAT oyuncuyu kopyalar)
+  - [ ] F7d: dinamik dram (§4.7: early_exit_streak, zorla Acemi eleme, final 1v1 seçimi)
+  - [ ] F7e: arena'ya bağlama + [EDİTÖR KONTROLÜ]
 - [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
