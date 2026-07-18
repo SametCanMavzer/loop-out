@@ -71,14 +71,16 @@ func _resolve_crossing(current_tick: int, perfect_ms: int, graze_ms: int, t: Obj
 			return  # nötr temiz geçiş — sinyal yok
 		_emit(t.id, CrossResult.MISS, 0.0)
 		return
-	# Normal (yer hizası) süpürme:
+	# Normal (yer hizası) süpürme — Model A: havadaysan en az GRAZE, MISS yalnız yerdeysen.
+	# İyi zamanlama (delta<=perfect) → PERFECT. Sudden death'te (graze_ms<=perfect_ms, §4.5
+	# graze bandı yok) perfect değilsen ıskalarsın.
 	if not t.is_airborne:
 		_emit(t.id, CrossResult.MISS, 0.0)
 		return
 	var delta_ms := absf(current_tick - t.jump_input_tick) * TICK_MS
 	if delta_ms <= float(perfect_ms):
 		_emit(t.id, CrossResult.PERFECT, delta_ms)
-	elif delta_ms <= float(graze_ms):
+	elif graze_ms > perfect_ms:
 		_emit(t.id, CrossResult.GRAZE, delta_ms)
 	else:
 		_emit(t.id, CrossResult.MISS, delta_ms)

@@ -35,13 +35,13 @@ func _process(_delta: float) -> bool:
 
 	var mid := 0.5 * absf(1.0) * Rope.TICK_DT  # prev(0) ile curr arası → bu tick süpürülür
 
-	# --- 2) Sınıflandırma (LOW), round1 pencereleri: perfect 90, graze 160 ---
+	# --- 2) Sınıflandırma (LOW) — Model A: havada = en az GRAZE, MISS yalnız yerde. round1 (90,160) ---
 	_events.clear()
 	var cases := [
 		# [id, jump_tick, cross_tick, airborne, beklenen]
-		[1, 100, 100, true, Rope.CrossResult.PERFECT],   # delta 0ms
-		[2, 100, 109, true, Rope.CrossResult.GRAZE],     # delta ~150ms (<=160)
-		[3, 100, 112, true, Rope.CrossResult.MISS],      # delta ~200ms (>160)
+		[1, 100, 100, true, Rope.CrossResult.PERFECT],   # delta 0ms → PERFECT
+		[2, 100, 109, true, Rope.CrossResult.GRAZE],     # delta ~150ms → GRAZE
+		[3, 100, 112, true, Rope.CrossResult.GRAZE],     # delta ~200ms (erken) → yine GRAZE (havada)
 		[4, 100, 100, false, Rope.CrossResult.MISS],     # yerde → MISS
 	]
 	for c in cases:
@@ -56,13 +56,20 @@ func _process(_delta: float) -> bool:
 		if res.get(c[0]) != c[4]:
 			push_error("FAIL: id %d beklenen %d, gelen %s." % [c[0], c[4], str(res.get(c[0]))]); fail += 1
 
-	# --- 3) Tur-bağımlı graze (§4.5): round25 graze=130 → 150ms artık MISS ---
+	# --- 3) Sudden death (§4.5, graze bandı yok: graze_ms<=perfect_ms) → perfect değilse MISS ---
 	_events.clear()
 	rope.reset(0.0, 1.0)
 	var jr := FakeJumper.new(5, mid); jr.is_airborne = true; jr.jump_input_tick = 100
-	rope.tick(109, 90, 130, [jr])   # delta ~150ms, graze 130 → MISS
+	rope.tick(109, 90, 90, [jr])   # havada delta ~150ms ama graze yok → MISS
 	if _events.size() != 1 or _events[0][1] != Rope.CrossResult.MISS:
-		push_error("FAIL: daralan graze (130) uygulanmadı (150ms MISS olmalı)."); fail += 1
+		push_error("FAIL: sudden death'te havada-ama-perfect-değil MISS olmalı."); fail += 1
+	# ...aynı sudden death'te delta<=perfect → PERFECT
+	_events.clear()
+	rope.reset(0.0, 1.0)
+	var jp2 := FakeJumper.new(11, mid); jp2.is_airborne = true; jp2.jump_input_tick = 100
+	rope.tick(100, 90, 90, [jp2])  # delta 0 → PERFECT
+	if _events.size() != 1 or _events[0][1] != Rope.CrossResult.PERFECT:
+		push_error("FAIL: sudden death'te delta0 PERFECT olmalı."); fail += 1
 
 	# --- 4) HIGH süpürme (E7): ducking nötr (sinyal yok), airborne MISS ---
 	_events.clear()
