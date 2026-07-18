@@ -13,19 +13,24 @@ var _rope: Object      # duck-typed: angle, angular_vel
 var _jumper: Object    # duck-typed: angle_pos
 var _round: int = 1
 var _lookahead_ticks: int = 36
+var _player: Object = null      # Kopyacı için: duck-typed jump_input_tick, is_airborne
+var _copy_delay_ticks: int = 12  # Kopyacı: oyuncu + bu gecikme
 
 var _intent_tick: int = -1
 var _handled_cross: int = -1
 
 
 func setup(rng: RandomNumberGenerator, arch: BotArchetype, rope: Object, jumper: Object,
-		round_no: int = 1, lookahead_ms: float = 600.0) -> void:
+		round_no: int = 1, lookahead_ms: float = 600.0,
+		player: Object = null, copy_delay_ms: float = 200.0) -> void:
 	_rng = rng
 	_arch = arch
 	_rope = rope
 	_jumper = jumper
 	_round = round_no
 	_lookahead_ticks = _ms_to_ticks(lookahead_ms)
+	_player = player
+	_copy_delay_ticks = _ms_to_ticks(copy_delay_ms)
 
 
 ## Tur ilerledikçe σ büyür (zorluk eğrisi). GameState/arena tur değişiminde çağırır.
@@ -49,7 +54,7 @@ func poll(tick: int) -> Array[InputCommand]:
 	var t_cross := tick + ttc
 	# Geçiş lookahead içine girdi + bu geçiş için henüz niyet örneklemedik → örnekle.
 	if _intent_tick < 0 and ttc <= _lookahead_ticks and absi(t_cross - _handled_cross) > _lookahead_ticks:
-		_intent_tick = _sample_intent(t_cross)
+		_intent_tick = _sample_intent(t_cross, tick)
 		_handled_cross = t_cross
 	# Niyet tick'i geldi → kısa zıpla (press+release aynı tick = normal zıplama, hold yok).
 	if _intent_tick >= 0 and tick >= _intent_tick:
@@ -72,13 +77,33 @@ func _ticks_to_cross() -> int:
 	return int(ceil(d / step))
 
 
-func _sample_intent(t_cross: int) -> int:
-	var sigma := _arch.reaction_std_base_ms + _arch.std_round_slope * _round
-	# Acemi gidiş penceresi: σ yapay şişer (gidiş garanti ama hâlâ zar atılır).
+## σ(round) — zorluk eğrisi + Acemi gidiş penceresi şişmesi.
+func _sigma_ms() -> float:
+	var s := _arch.reaction_std_base_ms + _arch.std_round_slope * _round
 	if _arch.exit_from > 0 and _round >= _arch.exit_from and _round <= _arch.exit_to:
-		sigma *= _arch.exit_sigma_mult
-	var offset_ms := _rng.randfn(_arch.reaction_mean_ms, maxf(sigma, 1.0))
+		s *= _arch.exit_sigma_mult
+	return s
+
+
+func _default_sample(t_cross: int, sigma_scale: float = 1.0) -> int:
+	var offset_ms := _rng.randfn(_arch.reaction_mean_ms, maxf(_sigma_ms() * sigma_scale, 1.0))
 	return t_cross + _ms_to_ticks(offset_ms)
+
+
+## Niyet tick'i (§4.6). Quirk'e göre dallanır: NONE/Acemi/Panikçi/Sağlam düz örnekler;
+## Şovcu (SHOWOFF) %30 takla → σ×2; Kopyacı (COPYCAT) oyuncunun zıplamasını +gecikme ile kopyalar.
+func _sample_intent(t_cross: int, current_tick: int) -> int:
+	match _arch.quirk:
+		1:  # SHOWOFF
+			var scale := 2.0 if _rng.randf() < 0.30 else 1.0
+			return _default_sample(t_cross, scale)
+		2:  # COPYCAT
+			if _player != null and _player.jump_input_tick >= 0 \
+					and (current_tick - _player.jump_input_tick) <= _lookahead_ticks:
+				return _player.jump_input_tick + _copy_delay_ticks
+			return _default_sample(t_cross)  # oyuncu zıplamadı → kendi (kötü) örneklemi
+		_:
+			return _default_sample(t_cross)
 
 
 static func _ms_to_ticks(ms: float) -> int:
