@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 6 — Botlar** (F6a bitti; F6b .tres + arena bağlama + editör kontrolü sırada). F1–F5 tamamlandı ✅
+> Şu an: **Faz 7 — Davranışlar** (henüz başlanmadı). F1–F6 tamamlandı ✅
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
@@ -18,9 +18,9 @@
 - [x] **F5 Eleme:** sendeleme+af + eleme impuls + daralan çember + yeniden dizilim ✅
   - [x] F5a: `scripts/core/stumble_judge.gd` (StumbleJudge — Model A uyumlu: PERFECT/GRAZE=temiz, MISS=sendeleme; ⚠→af→eleme + sudden death; saf/autoload'suz, Outcome döndürür). Config'e `pardon_rounds(round)` getter'ı (§4.5, null→-1). Birim testi: `tests/test_stumble.gd` + smoke'ta pardon_rounds.
   - [x] F5b: `Ring` (radius_for + distribute_angles) + `arena_test` demosu — daralan çember + yeniden dizilim tween'i (crossing askıda, ip dönmeye devam) + tek gövde eleme impulsu + EventBus köprüsü. **Editör onayı alındı** ("ip dönmeye devam ediyor"). Denetimde 3 kusur düzeltildi (§4.4 ip donması, jumper node sızıntısı, tween üst üste binme). arena_test'e geçici "Yeniden Başlat" butonu (dev test kolaylığı).
-- [ ] **F6 Botlar:** InputSource + Acemi/Panikçi/Sağlam + zorluk eğrisi bağlantısı
+- [x] **F6 Botlar:** InputSource + Acemi/Panikçi/Sağlam + zorluk eğrisi bağlantısı ✅
   - [x] F6a: `bot_archetype.gd` (BotArchetype Resource) + `bot_brain.gd` (BotBrain extends InputSource — Rng.bots'tan niyet tick'i örnekleme, sarma-güvenli t_cross tahmini, zorluk eğrisi σ(round), Acemi exit σ şişme). Autoload'suz (rng/rope/jumper enjekte). Birim testi: `tests/test_bot.gd` (determinizm, geçiş penceresi, InputSource sözleşmesi/E12).
-  - [ ] F6b: 3 arketip `.tres` (data/archetypes/, values §4.6) + arena'da dummy'leri gerçek botlarla değiştir (her jumper'a BotBrain, Rng.bots seed) + zorluk/archetype_counts bağlama → [EDİTÖR KONTROLÜ] (botların oynadığını izle)
+  - [x] F6b: 3 arketip `.tres` + arena'da gerçek botlar (BotBrain, Rng.bots) + tur ilerlemesiyle σ büyümesi. **Editör onayı** ("botlar zıplıyor"). Denetimde 3 düzeltme: reset_intent (bayat niyet), eleme erteleme (rope.tick sırasında pozisyon değişimi → sahte MISS; miss oranı %15→%3), tüm jumper'lara zıplama görseli. İnce balans F11.
 - [ ] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram
 - [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
