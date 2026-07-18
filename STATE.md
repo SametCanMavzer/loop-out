@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 7 — Davranışlar** (F7a–F7e bitti; F7f dinamik dram sırada). F1–F6 tamamlandı ✅
+> Şu an: **Faz 7 — Davranışlar** (F7a–F7f bitti; F7g arena bağlama + editör sırada). F1–F6 tamamlandı ✅
 
 > GDD/TDD PDF'leri `pdftotext -enc UTF-8 docs/gdd.md.pdf out.txt` ile okunabilir (/mingw64/bin). GDD §4.1 tam davranış havuzu (7): normal, speed_step, sudden_stop, reverse, high_sweep, double_sweep, fake_slow. Zorluk eğrisi §4.2 balance.json'a işlendi. Özel mantık gerektirenler: sudden_stop (yarım tur durur), reverse (yön), double_sweep (çift süpürme), fake_slow (telegrafsız, tur25+); speed_step base'i kalıcı artırır.
 
@@ -29,8 +29,8 @@
   - [x] F7c: özel 3 davranış (sudden_stop yarım-tur zamanlı duruş, fake_slow yavaş→snap, double_sweep ertelenmiş ikinci süpürme) + .tres'leri. Rope'a zamanlı hız etkisi (_effect_ticks_left) + _deferred ikinci-süpürme kuyruğu. Test: `tests/test_behavior_special.gd`.
   - [x] F7d: `scripts/core/round_director.gd` (RoundDirector — ağırlıklı rastgele Rng.behavior, tur bazlı aktif set §4.2, min_round, max-2-ardışık; tick() seçim aralığında davranış döndürür). Decoupled. Test: `tests/test_director.gd`.
   - [x] F7e: Şovcu/Kopyacı arketipleri — BotBrain quirk dalı (SHOWOFF %30 takla→σ×2; COPYCAT oyuncunun zıplaması+gecikme, yoksa kendi örneklemi) + 2 `.tres`. Test: `tests/test_bot_quirk.gd`. NOT: SHOWOFF'un "perfect'te takla" tetiği stokastik σ×2 olarak yorumlandı (botlar nadiren perfect alır; niyet buydu).
-  - [ ] F7f: dinamik dram (§4.7: early_exit_streak, zorla Acemi eleme, final 1v1 seçimi)
-  - [ ] F7g: arena'ya bağlama + [EDİTÖR KONTROLÜ]
+  - [x] F7f: `scripts/core/drama_director.gd` (DramaDirector §4.7: kurtarma=streak≥eşik+tur≤3'te Acemi seç, final aday=Sağlam/en düşük σ) + BotBrain σ override (set_sigma_override). Decoupled. Test: `tests/test_drama.gd`.
+  - [ ] F7g: arena'ya bağlama (RoundDirector→rope telegraf, davranışlar canlı, Şovcu/Kopyacı botlar, dram) + [EDİTÖR KONTROLÜ]
 - [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion

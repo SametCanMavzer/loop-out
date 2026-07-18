@@ -15,6 +15,7 @@ var _round: int = 1
 var _lookahead_ticks: int = 36
 var _player: Object = null      # Kopyacı için: duck-typed jump_input_tick, is_airborne
 var _copy_delay_ticks: int = 12  # Kopyacı: oyuncu + bu gecikme
+var _forced_sigma_mult: float = 1.0  # dinamik dram müdahalesi (§4.7): σ zorla şişir/kıs
 
 var _intent_tick: int = -1
 var _handled_cross: int = -1
@@ -77,12 +78,25 @@ func _ticks_to_cross() -> int:
 	return int(ceil(d / step))
 
 
-## σ(round) — zorluk eğrisi + Acemi gidiş penceresi şişmesi.
+## Dinamik dram müdahalesi (§4.7): σ çarpanını değiştirir (kurtarma: şişir; final koruma: kıs).
+func set_sigma_override(mult: float) -> void:
+	_forced_sigma_mult = maxf(mult, 0.01)
+
+
+func archetype_id() -> StringName:
+	return _arch.id if _arch != null else &""
+
+
+func base_sigma() -> float:
+	return _arch.reaction_std_base_ms if _arch != null else 0.0
+
+
+## σ(round) — zorluk eğrisi + Acemi gidiş penceresi şişmesi + dram override.
 func _sigma_ms() -> float:
 	var s := _arch.reaction_std_base_ms + _arch.std_round_slope * _round
 	if _arch.exit_from > 0 and _round >= _arch.exit_from and _round <= _arch.exit_to:
 		s *= _arch.exit_sigma_mult
-	return s
+	return s * _forced_sigma_mult
 
 
 func _default_sample(t_cross: int, sigma_scale: float = 1.0) -> int:
