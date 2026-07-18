@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bipatlamain01"]
+
+; Kök sahne — tek sahne mimarisi (TDD §7.1). Hiç değişmez; restart = state reset.
+; İçerik (arena, HUD, UI router) F8'de koddan kurulur. Şimdilik iskelet.
+
+[node name="Main" type="Node3D"]

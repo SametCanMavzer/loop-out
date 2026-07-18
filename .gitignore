@@ -1,0 +1,14 @@
+# Godot 4 (TDD §16)
+.godot/
+/android/
+/build/
+export.cfg
+
+# Web export çıktıları
+/dist/
+*.wasm
+*.pck
+
+# OS
+.DS_Store
+Thumbs.db

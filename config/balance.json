@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "timing": {
+    "perfect_ms": 90,
+    "graze_ms": 160,
+    "input_buffer_ms": 100,
+    "jump_air_ms": 420,
+    "high_jump_air_ms": 700,
+    "hold_threshold_ms": 300,
+    "duck_release_ms": 120
+  },
+  "rope": {
+    "start_rpm": 25,
+    "speed_step_ratio": 1.08,
+    "max_rpm": 60
+  },
+  "stumble_regimes": [
+    { "from_round": 1,  "graze_ms": [90, 160], "pardon_rounds": 5 },
+    { "from_round": 20, "graze_ms": [90, 130], "pardon_rounds": 7 },
+    { "from_round": 30, "graze_ms": null,      "pardon_rounds": null }
+  ],
+  "difficulty_rounds": [
+    { "from": 1, "behaviors": ["normal"] },
+    { "from": 6, "behaviors": ["speed_step", "sudden_stop"] }
+  ],
+  "ring": {
+    "r_max": 9.0,
+    "r_min": 2.2,
+    "shrink_tween_s": 0.6
+  },
+  "economy": {
+    "win": 50,
+    "top3": 25,
+    "top8": 10,
+    "other": 5,
+    "perfect_bonus": 1,
+    "daily_first_win_mult": 3,
+    "ad_mult": 2,
+    "gacha_cost": 100
+  },
+  "bots": {
+    "archetype_counts": {
+      "acemi": 4,
+      "panikci": 3,
+      "saglam": 3,
+      "sovcu": 2,
+      "kopyaci": 2
+    },
+    "lookahead_ms": 600
+  },
+  "drama": {
+    "early_exit_threshold": 4,
+    "streak_len": 2
+  }
+}
