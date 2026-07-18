@@ -1,11 +1,11 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 1 — İskelet** (kod tamam, F1-KAPI FPS testi bekliyor)
+> Şu an: **Faz 2 — Tick çekirdeği** (henüz başlanmadı). F1 tamamlandı ✅
 
 ## Yol haritası (TDD §18)
-- [ ] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
+- [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
   - [x] F1a: proje iskeleti — project.godot (Compatibility, 60Hz tick, InputMap jump/duck), §2 klasör yapısı, 7 autoload stub, balance.json (§5.1), main.tscn, .gitignore, export_presets.cfg (threads OFF). Duman testi geçti: `tests/smoke_f1.gd` (7 autoload + Config yükleme + ms_to_ticks + Rng determinizm).
-  - [ ] F1-KAPI: hedef cihazda boş sahne + 17 kapsül FPS testi → [EDİTÖR KONTROLÜ] (aşağıda)
+  - [x] F1-KAPI (E10 kapısı): hedef cihazda (2018 sınıfı Android, Chrome, web export threads OFF) `fps_test.tscn` 17 kapsül → **60 FPS onaylandı**. Mimari doğrulandı, riskli varsayım kapandı.
 - [ ] **F2 Tick çekirdeği:** tick_clock + Rng 3 stream + input kuyruğu (tick damgalı)
 - [ ] **F3 İp:** RopeState (yalnız Normal) + crossing matematiği + süpürme gölgesi
 - [ ] **F4 Jumper:** zıplama + zamanlama sınıflandırma + input buffer → GDD Faz 1 HİS TESTİ
@@ -22,7 +22,7 @@
 - [ ] **F15 Yayın:** export + itch + Poki/CrazyGames başvuru
 
 ## Bekleyen [EDİTÖR KONTROLÜ]
-- **F1-KAPI (E10 kapısı):** Godot editöründe `scenes/fps_test.tscn`'i aç ve **hedef cihazda (2018 sınıfı Android, Chrome, web export)** çalıştır. Ekranda 17 kapsül + FPS sayacı görünmeli. Beklenen: **~60 FPS**. Sonuç ne olursa olsun tek cümleyle bildir (onay / "şu FPS geldi: ..."). Bu kapı geçmeden F1 tamamlandı sayılmaz; düşükse önlem §11 (tris↓, 12 kişi modu, partikül kıs).
+(yok)
 
 ## Bilinen buglar
 (yok)
