@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 4 — Jumper** (F4a bitti; F4b oynanabilir sahne + HİS TESTİ sırada). F1–F3 tamamlandı ✅
+> Şu an: **Faz 4 — Jumper** (F4a bitti; F4b kod hazır, HİS TESTİ bekliyor). F1–F3 tamamlandı ✅
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
@@ -14,7 +14,7 @@
   - [x] F3b: süpürme gölgesi + görsel ip dönüşü — `scripts/rope/rope_visual.gd` (RopeVisual: `_process`'te `lerp_angle` + physics interpolation fraction, LOW/HIGH yükseklik), `scenes/arena/rope_spinner.tscn` (bar + blob gölge), dev demo `scenes/dev/rope_demo.tscn`. **Editör onayı alındı** (akıcı dönüş + gölge + LOW/HIGH doğrulandı).
 - [ ] **F4 Jumper:** zıplama + zamanlama sınıflandırma + input buffer → GDD Faz 1 HİS TESTİ
   - [x] F4a: `input_source.gd` (InputSource arayüzü), `human_input.gd` (poll→InputQueue), `jumper_tuning.gd` (tick cinsi zamanlama, Config'ten enjekte), `jumper.gd` (Jumper: airborne tick sayacı + hold→high "geç karar" + duck release toleransı + input buffer; Rope crossing hedefi). Config'e `jumper_tuning()` getter'ı. Birim testi: `tests/test_jumper.gd` + smoke'ta tuning doğrulaması. Autoload'dan bağımsız (test-edilebilir).
-  - [ ] F4b: oynanabilir sahne (TickClock+Rope+Jumper wiring, kamera, girdi→zıplama görseli) → GDD Faz 1 **HİS TESTİ** [EDİTÖR KONTROLÜ]
+  - [ ] F4b: oynanabilir sahne — KOD HAZIR, HİS TESTİ bekliyor. `scenes/dev/play_test.tscn` + `scripts/dev/play_test.gd` (TickClock+Rope+Jumper+InputQueue canlı; SPACE zıpla/basılı-tut yüksek, S/↓ eğil; crossing→PERFECT/GRAZE/MISS geri bildirim; EventBus köprüsü). Jumper'a görsel `air_progress()`. Headless runtime-temiz. → GDD Faz 1 **HİS TESTİ** [EDİTÖR KONTROLÜ] (aşağıda)
 - [ ] **F5 Eleme:** sendeleme+af + eleme impuls + daralan çember + yeniden dizilim
 - [ ] **F6 Botlar:** InputSource + Acemi/Panikçi/Sağlam + zorluk eğrisi bağlantısı
 - [ ] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram
@@ -28,7 +28,7 @@
 - [ ] **F15 Yayın:** export + itch + Poki/CrazyGames başvuru
 
 ## Bekleyen [EDİTÖR KONTROLÜ]
-(yok)
+- **F4b-KAPI (GDD Faz 1 HİS TESTİ):** `scenes/dev/play_test.tscn` çalıştır. Mavi kapsül (270°, önde) + dönen ip. **SPACE** ile ip sana yaklaşırken zıpla → üstte PERFECT/GRAZE/MISS + delta ms. **SPACE basılı tut** = yüksek zıplama (daha uzun havada). **S/↓** = eğil (kapsül çömelir). Değerlendir: zamanlama penceresi adil mi, zıplama hissi tatmin edici mi, geç/erken basış doğru cezalandırıyor mu. Sonucu bildir (onay / "şu ayar tuhaf: ...").
 
 ## Bilinen buglar
 (yok)
