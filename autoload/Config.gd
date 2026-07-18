@@ -93,3 +93,15 @@ func graze_ms(round_no: int) -> int:
 	if g == null:
 		return perfect_ms(round_no)
 	return int((g as Array)[1])  # [perfect_sınırı, graze_sınırı] → üst sınır
+
+
+## Jumper zamanlama parametrelerini tick cinsinden döndürür (§6). Jumper Config'e bağlı
+## kalmasın diye enjekte edilir (Karar: pure/test-edilebilir çekirdek).
+func jumper_tuning() -> JumperTuning:
+	return JumperTuning.new(
+		ms_to_ticks(float(timing.get("jump_air_ms", 420))),
+		ms_to_ticks(float(timing.get("high_jump_air_ms", 700))),
+		ms_to_ticks(float(timing.get("hold_threshold_ms", 300))),
+		ms_to_ticks(float(timing.get("duck_release_ms", 120))),
+		ms_to_ticks(float(timing.get("input_buffer_ms", 100)))
+	)
