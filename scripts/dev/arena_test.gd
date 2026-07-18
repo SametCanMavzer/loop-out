@@ -27,6 +27,7 @@ var _ring_radius := 9.0
 var _flying := []           # elenen gövdeler: {node, vel:Vector3, angvel:float, life:float}
 var _reassign_tween: Tween
 var _arch_by_id := {}       # id -> BotArchetype (oyuncu: null)
+var _pending_elim: Array = []   # bu tick elenecekler (rope.tick sonrası toplu uygulanır)
 
 # oyuncu zıplama görseli
 var _viz_vy := 0.0
@@ -119,6 +120,8 @@ func _physics_process(_dt: float) -> void:
 			targets.append(_players[id].jumper)
 	_rope.tick(t, Config.perfect_ms(_round), Config.graze_ms(_round), targets)
 	_rope_viz.on_logic_step()
+	if not _pending_elim.is_empty():
+		_flush_eliminations()
 
 
 func _on_crossed(id: int, result: int, delta_ms: float) -> void:
@@ -133,7 +136,9 @@ func _on_crossed(id: int, result: int, delta_ms: float) -> void:
 		StumbleJudge.Outcome.PARDONED:
 			EventBus.jumper_pardoned.emit(id); _refresh_color(id)
 		StumbleJudge.Outcome.ELIMINATED:
-			EventBus.jumper_eliminated.emit(id, 0); _eliminate(id)
+			# Ertele: rope.tick döngüsü sürerken pozisyon değiştirme (bkz. _flush_eliminations).
+			if not _pending_elim.has(id):
+				_pending_elim.append(id)
 	# Geri bildirim yazısı (PERFECT/GRAZE/MISS) yalnız oyuncu için
 	if id == _player_id:
 		_flash = 1.0
@@ -154,10 +159,12 @@ func _refresh_color(id: int) -> void:
 	_players[id].mat.albedo_color = Color(1.0, 0.85, 0.2) if warned else base
 
 
+## Tek jumper'ı kaldır + fırlat (§4.9). Yeniden dizilim YAPMAZ — çağıran toplu reassign eder.
 func _eliminate(id: int) -> void:
 	if not _alive_ids.has(id):
 		return
 	_alive_ids.erase(id)
+	EventBus.jumper_eliminated.emit(id, 0)
 	EventBus.ring_shrunk.emit(_alive_ids.size())
 	# Tek gövde impuls (§4.9): kozmetik yön/hız ile fırlat.
 	var e = _players[id]
@@ -169,7 +176,18 @@ func _eliminate(id: int) -> void:
 	})
 	e.jumper.queue_free()   # öksüz mantık node'unu temizle
 	_players.erase(id)
-	_reassign()
+
+
+## Bekleyen elemeleri toplu uygula, ardından TEK yeniden dizilim (pozisyonlar tick boyunca sabit kaldı).
+func _flush_eliminations() -> void:
+	var any := false
+	for id in _pending_elim:
+		if _alive_ids.has(id):
+			_eliminate(id)
+			any = true
+	_pending_elim.clear()
+	if any:
+		_reassign()
 
 
 func _reassign() -> void:
@@ -250,3 +268,4 @@ func _eliminate_random_dummy() -> void:
 	if dummies.is_empty():
 		return
 	_eliminate(dummies[Rng.cosmetic.randi() % dummies.size()])
+	_reassign()   # E crossing dışında (input) → hemen yeniden diz
