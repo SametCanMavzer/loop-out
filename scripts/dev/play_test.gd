@@ -4,7 +4,10 @@ extends Node3D
 ## Autoload'ları (Config/EventBus) serbest kullanır — normal sahne çalıştırması, -s değil.
 
 const RING_R := 6.0
-const PLAYER_ANGLE := 3.0 * PI / 2.0   # 270°, ekranın altı (§4.4)
+## Rope görseli Y-rotasyonu +X'i (cos a, 0, -sin a) yönüne çevirir. Jumper dünya konumu da
+## AYNI konvansiyonu kullanmalı yoksa görsel ip ile mantıksal geçiş farklı yerde olur.
+## a=π/2 → jumper öne (-Z, kameraya dönük) gelir ve ip tam oraya süpürür.
+const PLAYER_ANGLE := PI / 2.0
 
 var _clock: TickClock
 var _rope: Rope
@@ -40,7 +43,7 @@ func _ready() -> void:
 	_jumper.setup(HumanInput.new(_input), Config.jumper_tuning())
 	_rope.crossed.connect(_on_crossed)
 
-	_jumper_viz.position = Vector3(cos(PLAYER_ANGLE) * RING_R, 0.0, sin(PLAYER_ANGLE) * RING_R)
+	_jumper_viz.position = Vector3(cos(PLAYER_ANGLE) * RING_R, 0.0, -sin(PLAYER_ANGLE) * RING_R)
 	_feedback.modulate.a = 0.0
 
 
