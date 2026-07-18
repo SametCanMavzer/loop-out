@@ -1,12 +1,14 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 2 — Tick çekirdeği** (henüz başlanmadı). F1 tamamlandı ✅
+> Şu an: **Faz 3 — İp** (henüz başlanmadı). F1, F2 tamamlandı ✅
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
   - [x] F1a: proje iskeleti — project.godot (Compatibility, 60Hz tick, InputMap jump/duck), §2 klasör yapısı, 7 autoload stub, balance.json (§5.1), main.tscn, .gitignore, export_presets.cfg (threads OFF). Duman testi geçti: `tests/smoke_f1.gd` (7 autoload + Config yükleme + ms_to_ticks + Rng determinizm).
   - [x] F1-KAPI (E10 kapısı): hedef cihazda (2018 sınıfı Android, Chrome, web export threads OFF) `fps_test.tscn` 17 kapsül → **60 FPS onaylandı**. Mimari doğrulandı, riskli varsayım kapandı.
-- [ ] **F2 Tick çekirdeği:** tick_clock + Rng 3 stream + input kuyruğu (tick damgalı)
+- [x] **F2 Tick çekirdeği:** tick_clock + Rng 3 stream + input kuyruğu (tick damgalı)
+  - [x] `scripts/core/tick_clock.gd` (TickClock, 60Hz, advance/start/stop/reset + `ticked` sinyali), `input_command.gd` (InputCommand: tick+action+pressed, to_replay), `input_queue.gd` (InputQueue: `_input` yakalama + tick damgalama + FIFO `poll(tick)`). `touch_latency_offset_ms` config'e eklendi (§6, default 0). Birim testi geçti: `tests/test_tick_core.gd`.
+  - NOT: canlı sahnede `TickClock.start()` + `InputQueue.setup()` bağlanması F5'te (GameState run döngüsü) yapılacak — henüz simüle edilecek bir şey yok. Determinizm sözleşmesi (advance()/poll() doğrudan çağrılabilir) test edildi.
 - [ ] **F3 İp:** RopeState (yalnız Normal) + crossing matematiği + süpürme gölgesi
 - [ ] **F4 Jumper:** zıplama + zamanlama sınıflandırma + input buffer → GDD Faz 1 HİS TESTİ
 - [ ] **F5 Eleme:** sendeleme+af + eleme impuls + daralan çember + yeniden dizilim
