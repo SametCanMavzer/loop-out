@@ -35,6 +35,9 @@ var _last_jump_tick := -999
 @onready var _input: InputQueue = $Input
 @onready var _rope_viz: RopeVisual = $RopeSpinner
 @onready var _info: Label = $UI/Info
+@onready var _feedback: Label = $UI/Feedback
+
+var _flash := 0.0
 
 
 func _ready() -> void:
@@ -106,6 +109,15 @@ func _on_crossed(id: int, result: int, _delta_ms: float) -> void:
 	# F5b: yalnız oyuncu gerçek sendeleme/eleme (dummy'ler yer tutucu — F6 botları gelene dek).
 	if id != _player_id:
 		return
+	# Zıplama sonucu geri bildirimi (PERFECT/GRAZE/MISS)
+	_flash = 1.0
+	match result:
+		Rope.CrossResult.PERFECT:
+			_feedback.text = "PERFECT (%d ms)" % int(_delta_ms); _feedback.modulate = Color(0.3, 1.0, 0.4)
+		Rope.CrossResult.GRAZE:
+			_feedback.text = "GRAZE (%d ms)" % int(_delta_ms); _feedback.modulate = Color(1.0, 0.9, 0.3)
+		Rope.CrossResult.MISS:
+			_feedback.text = "MISS"; _feedback.modulate = Color(1.0, 0.35, 0.3)
 	var j = _players[id].jumper
 	var outcome := _judge.resolve(j, result, Config.pardon_rounds(_round))
 	match outcome:
@@ -175,6 +187,11 @@ func _process(dt: float) -> void:
 		_viz_y = maxf(_viz_y, 0.0)
 		_players[_player_id].cap.position.y = 0.7 + _viz_y
 		_players[_player_id].cap.scale.y = 0.6 if pj.is_ducking else 1.0
+
+	# Geri bildirim yazısını soldur
+	if _flash > 0.0:
+		_flash = maxf(0.0, _flash - dt * 1.2)
+		_feedback.modulate.a = _flash
 
 	# Elenen gövdeleri uçur + soldur
 	var still := []

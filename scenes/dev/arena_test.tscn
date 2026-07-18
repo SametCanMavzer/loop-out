@@ -34,6 +34,20 @@ offset_right = 640.0
 offset_bottom = 60.0
 text = "..."
 
+[node name="Feedback" type="Label" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -180.0
+offset_right = 140.0
+offset_bottom = -130.0
+theme_override_font_sizes/font_size = 44
+horizontal_alignment = 1
+text = ""
+
 [node name="Restart" type="Button" parent="UI"]
 focus_mode = 0
 offset_left = 16.0
