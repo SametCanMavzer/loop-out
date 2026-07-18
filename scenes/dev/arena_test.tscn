@@ -33,3 +33,11 @@ offset_top = 16.0
 offset_right = 640.0
 offset_bottom = 60.0
 text = "..."
+
+[node name="Restart" type="Button" parent="UI"]
+focus_mode = 0
+offset_left = 16.0
+offset_top = 72.0
+offset_right = 200.0
+offset_bottom = 108.0
+text = "↻ Yeniden Başlat"

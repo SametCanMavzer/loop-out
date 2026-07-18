@@ -50,6 +50,8 @@ func _ready() -> void:
 	_rope.crossed.connect(_on_crossed)
 	_input.setup(_clock)
 
+	$UI/Restart.pressed.connect(func() -> void: get_tree().reload_current_scene())
+
 	for i in N_START:
 		_spawn_jumper(i)
 	_alive_ids = range(N_START)

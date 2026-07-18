@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 5 — Eleme** (F5a bitti; F5b daralan çember + yeniden dizilim + görsel impuls sırada). F1–F4 tamamlandı ✅
+> Şu an: **Faz 6 — Botlar** (henüz başlanmadı). F1–F5 tamamlandı ✅
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)
@@ -15,9 +15,9 @@
 - [x] **F4 Jumper:** zıplama + zamanlama sınıflandırma + input buffer → GDD Faz 1 HİS TESTİ ✅
   - [x] F4a: `input_source.gd` (InputSource arayüzü), `human_input.gd` (poll→InputQueue), `jumper_tuning.gd` (tick cinsi zamanlama, Config'ten enjekte), `jumper.gd` (Jumper: airborne tick sayacı + hold→high "geç karar" + duck release toleransı + input buffer; Rope crossing hedefi). Config'e `jumper_tuning()` getter'ı. Birim testi: `tests/test_jumper.gd` + smoke'ta tuning doğrulaması. Autoload'dan bağımsız (test-edilebilir).
   - [x] F4b: oynanabilir sahne `scenes/dev/play_test.tscn` — GDD Faz 1 **HİS TESTİ onaylandı** ("his oturdu"). Bu turda 3 düzeltme: (1) yüksek zıplama görseli hız-tabanlı (pop yok), (2) crossing Model A (havada=en az GRAZE), (3) jumper dünya konumu rope rotasyon konvansiyonuna hizalandı (görsel/mantık geçiş uyumu — asıl his bugı). NOT: play_test dev kamera çerçevelemesi kaba (ip tam sığmıyor); gerçek arena kamerası F8.
-- [ ] **F5 Eleme:** sendeleme+af + eleme impuls + daralan çember + yeniden dizilim
+- [x] **F5 Eleme:** sendeleme+af + eleme impuls + daralan çember + yeniden dizilim ✅
   - [x] F5a: `scripts/core/stumble_judge.gd` (StumbleJudge — Model A uyumlu: PERFECT/GRAZE=temiz, MISS=sendeleme; ⚠→af→eleme + sudden death; saf/autoload'suz, Outcome döndürür). Config'e `pardon_rounds(round)` getter'ı (§4.5, null→-1). Birim testi: `tests/test_stumble.gd` + smoke'ta pardon_rounds.
-  - [ ] F5b: daralan çember (`r=lerp(r_min,r_max,(alive-2)/14)`, §4.4) + eleme sonrası yeniden dizilim (TAU/N + 270° hizası, crossing tween sırasında askıda) + tek gövde eleme impulsu (§4.9) + EventBus köprüsü (jumper_stumbled/pardoned/eliminated). Görsel kısım → [EDİTÖR KONTROLÜ]
+  - [x] F5b: `Ring` (radius_for + distribute_angles) + `arena_test` demosu — daralan çember + yeniden dizilim tween'i (crossing askıda, ip dönmeye devam) + tek gövde eleme impulsu + EventBus köprüsü. **Editör onayı alındı** ("ip dönmeye devam ediyor"). Denetimde 3 kusur düzeltildi (§4.4 ip donması, jumper node sızıntısı, tween üst üste binme). arena_test'e geçici "Yeniden Başlat" butonu (dev test kolaylığı).
 - [ ] **F6 Botlar:** InputSource + Acemi/Panikçi/Sağlam + zorluk eğrisi bağlantısı
 - [ ] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram
 - [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
