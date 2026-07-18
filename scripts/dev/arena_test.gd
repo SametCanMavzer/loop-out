@@ -238,10 +238,18 @@ func _on_telegraphed(id: StringName) -> void:
 	_behavior_label.text = "⚠ " + String(id).to_upper()
 	_behavior_label.modulate = Color(1.0, 0.8, 0.2, 1.0)
 	_behavior_flash = 1.6
+	for pid in _alive_ids:   # Panikçi telegraf tepkisi (§4.6) — sıra sabit → deterministik
+		var br = _players[pid].jumper.input_source
+		if br is BotBrain:
+			br.on_telegraph()
 
 
 func _on_behavior_started(id: StringName) -> void:
 	EventBus.behavior_started.emit(id)
+	for pid in _alive_ids:   # hız/yön değişti → bayat niyetleri sıfırla (adalet)
+		var br = _players[pid].jumper.input_source
+		if br is BotBrain:
+			br.reset_intent()
 	_behavior_label.text = String(id).to_upper()
 	_behavior_label.modulate = Color(0.85, 0.9, 1.0, 1.0)
 	_behavior_flash = 1.2

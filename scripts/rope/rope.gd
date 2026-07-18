@@ -68,8 +68,9 @@ func set_base_speed(vel: float) -> void:
 func queue_behavior(behavior: RopeBehavior, telegraph_ticks: int) -> void:
 	_pending = behavior
 	telegraph_ticks_left = maxi(telegraph_ticks, 0)
-	behavior_telegraphed.emit(behavior.id)
-	if telegraph_ticks_left == 0:
+	if telegraph_ticks_left > 0:
+		behavior_telegraphed.emit(behavior.id)   # telegrafı olmayan davranış (fake_slow) uyarı SIZDIRMAZ
+	else:
 		_activate_pending()
 
 

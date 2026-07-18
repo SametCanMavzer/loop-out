@@ -52,6 +52,9 @@ func _process(_delta: float) -> bool:
 	rope.queue_behavior(high, 0)   # telegraf 0 → anında
 	if rope.height != Rope.Height.HIGH:
 		push_error("FAIL: height davranışı HIGH yapmalı."); fail += 1
+	# Telegraf 0 tick → behavior_telegraphed YAYILMAZ (fake_slow "okunamaz numara" sızmaz)
+	if _events.size() != 1 or _events[0][0] != "start":
+		push_error("FAIL: 0-tick telegrafta yalnız 'start' yayılmalı (%s)." % str(_events)); fail += 1
 	if rope.current_behavior_id != &"high_rope":
 		push_error("FAIL: anında davranış current_behavior_id güncellemeli."); fail += 1
 

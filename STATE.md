@@ -51,6 +51,7 @@
 - balance.json: §5.1 şemasında `lookahead_ms` sehven `archetype_counts` içinde; §4.6'ya göre `bots` seviyesine taşındı.
 - difficulty_rounds: GDD §4.1 tam davranış havuzu PDF (docs/gdd.md.pdf) metin okunamadığından §5.1'deki 2 çapa korundu; tam havuz F7'de doldurulacak.
 - Rope decoupling: §3.2 rope_crossed EventBus sinyali; ama Rope'u saf/test edilebilir tutmak için lokal `crossed` sinyali yayar + zamanlama pencerelerini parametre alır (autoload'a bağlı değil). EventBus köprüsü + round→pencere Config eşlemesi F5 GameState'te yapılır. (-s test bağlamı autoload global'lerini çözemiyor; bu decoupling hem doğru mimari hem test şartı.)
+- F7 denetimi: archetype_counts panikci 3→4 (GDD §5.1 "16 kadro"=15 bot; 14'tü). fake_slow telegraf sinyali artık 0-tick'te yayılmıyor (GDD "telegraf YOK" sızıntısı). fake_slow min_round=30 (GDD içinde 25+ vs tier 30+ çelişkisi tier lehine çözüldü). Botlar double_sweep'te basılı zıplar (GDD karşı hamle), davranış başlayınca niyet sıfırlar (bayat zamanlama adaleti), Panikçi telegraf paniği (σ×3, prob 0.6) implement edildi.
 - **Crossing Model A (F4b HİS TESTİ sonrası, §4.3'ten sapma):** Havadaysan ip geçince en az GRAZE; delta<=perfect ise PERFECT; MISS yalnız yerdeysen. Sudden death'te (graze_ms<=perfect_ms) perfect değilsen MISS. Sebep: §4.3'ün "airborne-ama-erken=MISS" modeli test edilince adaletsiz hissettirdi (GRAZE hiç çıkmıyor, çoğu MISS). Samet onayı ile "havadaysan geçersin" modeline geçildi (§14.4 pencere-ayar kapısı).
 
 ## Teknik borç

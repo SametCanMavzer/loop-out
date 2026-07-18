@@ -75,8 +75,26 @@ func _process(_delta: float) -> bool:
 	if jt_fb < 0 or jt_fb == 42:
 		push_error("FAIL: Kopyacı oyuncu yokken kendi örneklemine düşmeli (gelen %d)." % jt_fb); fail += 1
 
+	# --- 4) Panikçi telegraf tepkisi (§4.6): on_telegraph (prob=1.0) → σ×3 → farklı niyet ---
+	var panik_arch := BotArchetype.new()
+	panik_arch.reaction_mean_ms = -210.0; panik_arch.reaction_std_base_ms = 70.0
+	panik_arch.std_round_slope = 4.0; panik_arch.telegraph_fail_prob = 1.0
+	var r5 := FakeRope.new(); r5.angular_vel = base
+	var j5 := FakeJumper.new(); j5.angle_pos = PI
+	var rng5 := RandomNumberGenerator.new(); rng5.seed = 5
+	var b_panic := BotBrain.new(); b_panic.setup(rng5, panik_arch, r5, j5, 1, 600.0)
+	b_panic.on_telegraph()   # panik kesin (prob 1.0)
+	var jt_panic := _first_jump(b_panic, r5, step)
+	var r6 := FakeRope.new(); r6.angular_vel = base
+	var j6 := FakeJumper.new(); j6.angle_pos = PI
+	var rng6 := RandomNumberGenerator.new(); rng6.seed = 5
+	var b_calm := BotBrain.new(); b_calm.setup(rng6, panik_arch, r6, j6, 1, 600.0)
+	var jt_calm := _first_jump(b_calm, r6, step)
+	if jt_panic < 0 or jt_panic == jt_calm:
+		push_error("FAIL: panik niyeti değiştirmeli (%d vs %d)." % [jt_panic, jt_calm]); fail += 1
+
 	if fail == 0:
-		print("TEST BOT QUIRK OK (Şovcu σ×2 zar, Kopyacı kopyala + fallback)")
+		print("TEST BOT QUIRK OK (Şovcu σ×2 zar, Kopyacı kopyala + fallback, Panikçi telegraf σ×3)")
 	else:
 		print("TEST BOT QUIRK FAILED: %d hata" % fail)
 	quit(fail)

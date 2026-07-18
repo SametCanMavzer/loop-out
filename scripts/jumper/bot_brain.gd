@@ -16,8 +16,11 @@ var _lookahead_ticks: int = 36
 var _player: Object = null      # Kopyacı için: duck-typed jump_input_tick, is_airborne
 var _copy_delay_ticks: int = 12  # Kopyacı: oyuncu + bu gecikme
 var _forced_sigma_mult: float = 1.0  # dinamik dram müdahalesi (§4.7): σ zorla şişir/kıs
+var _panic_mult: float = 1.0         # Panikçi (§4.6): telegraf sonrası σ×3 (bir sonraki örnekleme)
 var _duck_release_at: int = -1       # yüksek süpürme: eğilmeyi bu tick'te bırak
+var _jump_release_at: int = -1       # double_sweep: basılı zıplamayı bu tick'te bırak
 const _DUCK_HOLD_TICKS := 16         # eğilmeyi geçiş penceresini örtecek kadar tut
+const _HOLD_JUMP_TICKS := 20         # hold_threshold(18)+2 → yüksek zıplama kesinleşir
 
 var _intent_tick: int = -1
 var _handled_cross: int = -1
@@ -41,10 +44,20 @@ func set_round(round_no: int) -> void:
 	_round = round_no
 
 
-## Yeniden dizilim sonrası çağrılır: bot konumu değişti, bayat niyeti iptal et → yeniden örnekler.
+## Yeniden dizilim/davranış değişimi sonrası: bayat niyeti iptal et → yeniden örnekler.
+## (Davranış hız/yön değiştirince eski niyet sistematik ıskalatır; başarısızlık σ'dan gelmeli.)
 func reset_intent() -> void:
 	_intent_tick = -1
 	_handled_cross = -1
+
+
+## Telegraf tepkisi (§4.6 Panikçi): telegraph_fail_prob olasılıkla panik → sıradaki örnekleme σ×3.
+## Zar Rng.bots'tan (deterministik; çağrı sırası sabit alive listesi üzerinden gelir).
+func on_telegraph() -> void:
+	if _rng == null or _arch == null or _arch.telegraph_fail_prob <= 0.0:
+		return
+	if _rng.randf() < _arch.telegraph_fail_prob:
+		_panic_mult = 3.0
 
 
 func poll(tick: int) -> Array[InputCommand]:
@@ -59,18 +72,27 @@ func poll(tick: int) -> Array[InputCommand]:
 	if _intent_tick < 0 and ttc <= _lookahead_ticks and absi(t_cross - _handled_cross) > _lookahead_ticks:
 		_intent_tick = _sample_intent(t_cross, tick)
 		_handled_cross = t_cross
-	# Bekleyen eğilme bırakma (yüksek süpürme sonrası ayağa kalk).
+		_panic_mult = 1.0   # panik tek örneklemelik (§4.6 "telegraf geldiği turda")
+	# Bekleyen bırakmalar (eğilme / basılı zıplama).
 	if _duck_release_at >= 0 and tick >= _duck_release_at:
 		out.append(InputCommand.new(tick, &"duck", false))
 		_duck_release_at = -1
-	# Niyet tick'i geldi → ip YÜKSEK ise eğil (tut+geç bırak), değilse kısa zıpla.
+	if _jump_release_at >= 0 and tick >= _jump_release_at:
+		out.append(InputCommand.new(tick, &"jump", false))
+		_jump_release_at = -1
+	# Niyet tick'i geldi → ip YÜKSEK ise eğil; double_sweep ise YÜKSEK ZIPLA (basılı tut,
+	# GDD §4.1 karşı hamle: ikisini tek zıplamayla); değilse kısa zıpla.
 	if _intent_tick >= 0 and tick >= _intent_tick:
 		if int(_rope.height) == int(Rope.Height.HIGH):
 			out.append(InputCommand.new(tick, &"duck", true))
 			_duck_release_at = tick + _DUCK_HOLD_TICKS   # geçişi örtecek kadar tut
 		else:
 			out.append(InputCommand.new(tick, &"jump", true))
-			out.append(InputCommand.new(tick, &"jump", false))
+			var beh: Variant = _rope.get("current_behavior_id")
+			if beh != null and StringName(beh) == &"double_sweep":
+				_jump_release_at = tick + _HOLD_JUMP_TICKS   # yüksek zıplama → iki süpürmeyi örter
+			else:
+				out.append(InputCommand.new(tick, &"jump", false))
 		_intent_tick = -1
 	return out
 
@@ -101,12 +123,12 @@ func base_sigma() -> float:
 	return _arch.reaction_std_base_ms if _arch != null else 0.0
 
 
-## σ(round) — zorluk eğrisi + Acemi gidiş penceresi şişmesi + dram override.
+## σ(round) — zorluk eğrisi + Acemi gidiş penceresi + dram override + panik (§4.6).
 func _sigma_ms() -> float:
 	var s := _arch.reaction_std_base_ms + _arch.std_round_slope * _round
 	if _arch.exit_from > 0 and _round >= _arch.exit_from and _round <= _arch.exit_to:
 		s *= _arch.exit_sigma_mult
-	return s * _forced_sigma_mult
+	return s * _forced_sigma_mult * _panic_mult
 
 
 func _default_sample(t_cross: int, sigma_scale: float = 1.0) -> int:
