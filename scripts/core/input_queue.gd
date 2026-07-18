@@ -15,6 +15,8 @@ func setup(tick_clock: TickClock) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _tick_clock == null:
+		return  # setup() çağrılmadan damgalama yapma (tick=0 ile sessiz wiring hatasını önler).
 	for action in ACTIONS:
 		if event.is_action_pressed(action, false):
 			enqueue(action, true)

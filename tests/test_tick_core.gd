@@ -57,6 +57,29 @@ func _process(_delta: float) -> bool:
 	if got2.size() != 1 or got2[0].action != &"duck" or got2[0].tick != 5:
 		push_error("FAIL: kalan duck@5 komutu doğru çıkmadı."); fail += 1
 
+	# --- Replay round-trip: kaydedilen [tick,action,pressed] yeniden beslenince aynı poll çıktısı ---
+	# (§4.8 determinizm sözleşmesinin çekirdeği: "aynı tick listesi = aynı tur".)
+	var live := InputQueue.new()
+	var script := [[1, &"jump", true], [1, &"jump", false], [2, &"duck", true], [4, &"jump", true]]
+	for e in script:
+		live.enqueue(e[1], e[2], e[0])
+	var recorded: Array = []
+	for t in range(0, 5):
+		for cmd in live.poll(t):
+			recorded.append(cmd.to_replay())
+	var replay := InputQueue.new()
+	for r in recorded:
+		replay.enqueue(r[1], r[2], r[0])
+	var replayed: Array = []
+	for t in range(0, 5):
+		for cmd in replay.poll(t):
+			replayed.append(cmd.to_replay())
+	if recorded != replayed:
+		push_error("FAIL: replay round-trip farklı çıktı verdi (determinizm ihlali)."); fail += 1
+	if recorded.size() != script.size():
+		push_error("FAIL: replay kayıt sayısı %d, beklenen %d." % [recorded.size(), script.size()]); fail += 1
+	live.free(); replay.free()
+
 	# Sızıntı olmasın: ağaç dışı Node'ları serbest bırak.
 	clock.free(); c1.free(); c2.free(); q.free()
 
