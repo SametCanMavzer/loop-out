@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 7 — Davranışlar** (F7a–F7c bitti; F7d RoundDirector sırada). F1–F6 tamamlandı ✅
+> Şu an: **Faz 7 — Davranışlar** (F7a–F7d bitti; F7e Şovcu/Kopyacı sırada). F1–F6 tamamlandı ✅
 
 > GDD/TDD PDF'leri `pdftotext -enc UTF-8 docs/gdd.md.pdf out.txt` ile okunabilir (/mingw64/bin). GDD §4.1 tam davranış havuzu (7): normal, speed_step, sudden_stop, reverse, high_sweep, double_sweep, fake_slow. Zorluk eğrisi §4.2 balance.json'a işlendi. Özel mantık gerektirenler: sudden_stop (yarım tur durur), reverse (yön), double_sweep (çift süpürme), fake_slow (telegrafsız, tur25+); speed_step base'i kalıcı artırır.
 
@@ -27,7 +27,7 @@
   - [x] F7a: `rope_behavior.gd` (RopeBehavior Resource: id/min_round/weight/telegraph_ms/params) + Rope'a telegraf altyapısı (telegraph_ticks_left geri sayımı, queue_behavior, _apply_behavior speed_mult/height, base_angular_vel, behavior_telegraphed/started sinyalleri). Birim testi: `tests/test_behavior.gd`.
   - [x] F7b: generic 4 davranış `.tres` (normal/speed_step/reverse/high_sweep) + Rope etkileri (base kalıcı: speed_step tempo, reverse yön; geçici: height). Test: `tests/test_behavior.gd` (roster + etkiler).
   - [x] F7c: özel 3 davranış (sudden_stop yarım-tur zamanlı duruş, fake_slow yavaş→snap, double_sweep ertelenmiş ikinci süpürme) + .tres'leri. Rope'a zamanlı hız etkisi (_effect_ticks_left) + _deferred ikinci-süpürme kuyruğu. Test: `tests/test_behavior_special.gd`.
-  - [ ] F7d: RoundDirector (seçim: ağırlıklı rastgele Rng.behavior, max-2-ardışık, min_round, zorluk tablosu; davranışı telegraf'la kuyruğa alır)
+  - [x] F7d: `scripts/core/round_director.gd` (RoundDirector — ağırlıklı rastgele Rng.behavior, tur bazlı aktif set §4.2, min_round, max-2-ardışık; tick() seçim aralığında davranış döndürür). Decoupled. Test: `tests/test_director.gd`.
   - [ ] F7e: Şovcu/Kopyacı arketipleri (BotBrain quirk: SHOWOFF takla, COPYCAT oyuncuyu kopyalar)
   - [ ] F7f: dinamik dram (§4.7: early_exit_streak, zorla Acemi eleme, final 1v1 seçimi)
   - [ ] F7g: arena'ya bağlama + [EDİTÖR KONTROLÜ]
