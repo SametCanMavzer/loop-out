@@ -29,11 +29,6 @@ var _reassign_tween: Tween
 var _arch_by_id := {}       # id -> BotArchetype (oyuncu: null)
 var _pending_elim: Array = []   # bu tick elenecekler (rope.tick sonrası toplu uygulanır)
 
-# oyuncu zıplama görseli
-var _viz_vy := 0.0
-var _viz_y := 0.0
-var _last_jump_tick := -999
-
 @onready var _input: InputQueue = $Input
 @onready var _rope_viz: RopeVisual = $RopeSpinner
 @onready var _info: Label = $UI/Info
@@ -86,7 +81,8 @@ func _spawn_jumper(id: int) -> void:
 	mat.albedo_color = Color(0.35, 0.6, 0.9) if id == _player_id else Color(0.55, 0.55, 0.58)
 	cap.material_override = mat
 	viz.add_child(cap)
-	_players[id] = {"jumper": j, "viz": viz, "cap": cap, "mat": mat}
+	_players[id] = {"jumper": j, "viz": viz, "cap": cap, "mat": mat,
+		"viz_y": 0.0, "viz_vy": 0.0, "last_jump": -999}
 
 
 ## Tween'siz anlık yerleşim (başlangıç).
@@ -216,20 +212,23 @@ func _reassign() -> void:
 func _process(dt: float) -> void:
 	if _clock == null:
 		return
-	var t := _clock.current_tick
-	# Oyuncu zıplama görseli (yalnız oyuncu kapsülünün lokal y'si)
-	if _players.has(_player_id):
-		var pj = _players[_player_id].jumper
-		if pj.is_airborne and pj.jump_input_tick != _last_jump_tick:
-			_last_jump_tick = pj.jump_input_tick
-			_viz_vy = JUMP_V0; _viz_y = 0.0
+	# Zıplama görseli — TÜM jumper'lar (oyuncu + botlar). Her kapsül kendi hız-durumuyla.
+	for id in _alive_ids:
+		var e = _players[id]
+		var pj = e.jumper
+		if pj.is_airborne and pj.jump_input_tick != e.last_jump:
+			e.last_jump = pj.jump_input_tick
+			e.viz_vy = JUMP_V0
+			e.viz_y = 0.0
 		var g := GRAV_HIGH if pj.is_high() else GRAV_NORMAL
-		_viz_vy -= g * dt; _viz_y += _viz_vy * dt
+		e.viz_vy -= g * dt
+		e.viz_y += e.viz_vy * dt
 		if not pj.is_airborne:
-			_viz_y = move_toward(_viz_y, 0.0, 8.0 * dt); _viz_vy = 0.0
-		_viz_y = maxf(_viz_y, 0.0)
-		_players[_player_id].cap.position.y = 0.7 + _viz_y
-		_players[_player_id].cap.scale.y = 0.6 if pj.is_ducking else 1.0
+			e.viz_y = move_toward(e.viz_y, 0.0, 8.0 * dt)
+			e.viz_vy = 0.0
+		e.viz_y = maxf(e.viz_y, 0.0)
+		e.cap.position.y = 0.7 + e.viz_y
+		e.cap.scale.y = 0.6 if pj.is_ducking else 1.0
 
 	# Geri bildirim yazısını soldur
 	if _flash > 0.0:
