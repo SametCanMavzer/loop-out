@@ -63,3 +63,29 @@ func is_loaded() -> bool:
 ## ms → tick dönüşümü (TDD §4.1: floor, sabit yuvarlama, oyuncu lehine değil).
 static func ms_to_ticks(ms: float) -> int:
 	return int(floor(ms * TICKS_PER_SECOND / 1000.0))
+
+
+# --- Tipli zamanlama getter'ları (§4.3). Kod string anahtarla erişmez; buradan okur. ---
+
+## Verilen tura ait sendeleme rejimi (§4.5): from_round'u <= round_no olan en yükseği.
+func _regime_for(round_no: int) -> Dictionary:
+	var chosen: Dictionary = {}
+	for r in stumble_regimes:
+		if int((r as Dictionary).get("from_round", 1)) <= round_no:
+			chosen = r
+	return chosen
+
+
+## Perfect penceresi (ms). Sabit (§5.1 timing.perfect_ms); tur bağımsız.
+func perfect_ms(_round_no: int = 1) -> int:
+	return int(timing.get("perfect_ms", 90))
+
+
+## Graze üst penceresi (ms). Rejim daraltır (§4.5). Sudden death'te (graze_ms null) graze
+## bandı yoktur → perfect eşiği döner, yani perfect değilse ıskalama.
+func graze_ms(round_no: int) -> int:
+	var regime := _regime_for(round_no)
+	var g: Variant = regime.get("graze_ms", null)
+	if g == null:
+		return perfect_ms(round_no)
+	return int((g as Array)[1])  # [perfect_sınırı, graze_sınırı] → üst sınır

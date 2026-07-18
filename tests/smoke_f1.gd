@@ -26,6 +26,17 @@ func _process(_delta: float) -> bool:
 	if cfg != null and int(cfg.call("ms_to_ticks", 90.0)) != 5:
 		push_error("FAIL: ms_to_ticks(90) beklenen 5 değil."); fail += 1
 
+	# Tipli zamanlama getter'ları (§4.3/§4.5): tur-bağımlı graze daralması + sudden death
+	if cfg != null:
+		if int(cfg.call("perfect_ms", 1)) != 90:
+			push_error("FAIL: perfect_ms(1) beklenen 90."); fail += 1
+		if int(cfg.call("graze_ms", 1)) != 160:
+			push_error("FAIL: graze_ms(1) beklenen 160."); fail += 1
+		if int(cfg.call("graze_ms", 25)) != 130:
+			push_error("FAIL: graze_ms(25) beklenen 130 (daralan rejim)."); fail += 1
+		if int(cfg.call("graze_ms", 35)) != int(cfg.call("perfect_ms", 35)):
+			push_error("FAIL: graze_ms(35) sudden death'te perfect_ms'e eşit olmalı (graze yok)."); fail += 1
+
 	# Rng determinizmi: aynı seed → aynı ilk değer
 	if rng != null:
 		rng.call("seed_round", 1234)
