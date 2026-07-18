@@ -2,7 +2,7 @@
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
 > Şu an: **Faz 7 — Davranışlar** (F7a bitti; F7b RoundDirector sırada). F1–F6 tamamlandı ✅
 
-> ⚠ GDD §4.1 tam ip davranış listesi `docs/gdd.md.pdf`'ten okunamıyor (poppler yok). Sistem veri-odaklı; bilinen 5 davranışla (normal/speed_step/sudden_stop/double_sweep/fake_slow) kuruluyor, eksik 2 davranış GDD listesi gelince eklenecek (yeni .tres).
+> GDD/TDD PDF'leri `pdftotext -enc UTF-8 docs/gdd.md.pdf out.txt` ile okunabilir (/mingw64/bin). GDD §4.1 tam davranış havuzu (7): normal, speed_step, sudden_stop, reverse, high_sweep, double_sweep, fake_slow. Zorluk eğrisi §4.2 balance.json'a işlendi. Özel mantık gerektirenler: sudden_stop (yarım tur durur), reverse (yön), double_sweep (çift süpürme), fake_slow (telegrafsız, tur25+); speed_step base'i kalıcı artırır.
 
 ## Yol haritası (TDD §18)
 - [x] **F1 İskelet:** Godot projesi + klasör yapısı (TDD §2) + 7 autoload stub + balance.json yükleme + Git init + web export preset (threads OFF)

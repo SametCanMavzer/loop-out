@@ -21,9 +21,14 @@
     { "from_round": 30, "graze_ms": null,      "pardon_rounds": null }
   ],
   "difficulty_rounds": [
-    { "from": 1, "behaviors": ["normal"] },
-    { "from": 6, "behaviors": ["speed_step", "sudden_stop"] }
+    { "from": 1,  "behaviors": ["normal"] },
+    { "from": 6,  "behaviors": ["normal", "speed_step", "sudden_stop"] },
+    { "from": 13, "behaviors": ["normal", "speed_step", "sudden_stop", "reverse", "high_sweep"] },
+    { "from": 20, "behaviors": ["normal", "speed_step", "sudden_stop", "reverse", "high_sweep", "double_sweep"] },
+    { "from": 30, "behaviors": ["normal", "speed_step", "sudden_stop", "reverse", "high_sweep", "double_sweep", "fake_slow"] }
   ],
+  "behavior_select_interval_ms": 2000,
+  "behavior_max_consecutive": 2,
   "ring": {
     "r_max": 9.0,
     "r_min": 2.2,
