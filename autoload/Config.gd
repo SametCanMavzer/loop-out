@@ -95,6 +95,13 @@ func graze_ms(round_no: int) -> int:
 	return int((g as Array)[1])  # [perfect_sınırı, graze_sınırı] → üst sınır
 
 
+## Bu tura ait af eşiği (§4.5): temiz geçiş sayısı ⚠'yı siler. null → -1 (sudden death, af yok).
+func pardon_rounds(round_no: int) -> int:
+	var regime := _regime_for(round_no)
+	var p: Variant = regime.get("pardon_rounds", null)
+	return int(p) if p != null else -1
+
+
 ## Jumper zamanlama parametrelerini tick cinsinden döndürür (§6). Jumper Config'e bağlı
 ## kalmasın diye enjekte edilir (Karar: pure/test-edilebilir çekirdek).
 func jumper_tuning() -> JumperTuning:

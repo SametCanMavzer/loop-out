@@ -41,6 +41,10 @@ func _process(_delta: float) -> bool:
 		if jt == null or jt.jump_air != 25 or jt.high_jump_air != 42 or jt.hold_threshold != 18 \
 				or jt.duck_release != 7 or jt.input_buffer != 6:
 			push_error("FAIL: jumper_tuning tick değerleri yanlış."); fail += 1
+		# Af eşiği (§4.5): rejim geçişleri + sudden death
+		if int(cfg.call("pardon_rounds", 1)) != 5 or int(cfg.call("pardon_rounds", 25)) != 7 \
+				or int(cfg.call("pardon_rounds", 35)) != -1:
+			push_error("FAIL: pardon_rounds rejim değerleri yanlış (5/7/-1)."); fail += 1
 
 	# Rng determinizmi: aynı seed → aynı ilk değer
 	if rng != null:
