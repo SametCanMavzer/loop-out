@@ -26,6 +26,11 @@ func _ready() -> void:
 	_cost = int(Config.economy.get("gacha_cost", 100))
 	_draw_button.pressed.connect(_on_draw)
 	_close_button.pressed.connect(func() -> void: closed.emit())
+	# GEÇİCİ (dev, F14'te kalkar): çekilişi test etmek için jeton ver.
+	($Panel/DevCoins as Button).pressed.connect(func() -> void:
+		SaveGame.add_coins(100)
+		SaveGame.save_game()
+		refresh())
 	_toast.text = ""
 
 
