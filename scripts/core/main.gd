@@ -13,6 +13,8 @@ var state := GameState.new()
 
 var _arena: ArenaView
 var _input_queue := InputQueue.new()
+var _rewards := RewardCalculator.new()
+var _round_scored := false      # aynı turun ödülü iki kez yazılmasın
 
 
 func _ready() -> void:
@@ -25,6 +27,7 @@ func _ready() -> void:
 	_arena.controller.setup(_input_queue)
 	_input_queue.setup(_arena.controller.clock)
 
+	_rewards.setup(Config.economy)
 	_router.bind(state)
 	_results.restart_pressed.connect(restart)
 	_arena.controller.round_advanced.connect(func(r: int) -> void: _hud.set_round(r))
@@ -44,6 +47,7 @@ func start_new_round() -> void:
 		state.go(GameState.State.COUNTDOWN)
 	var seed := int(Time.get_unix_time_from_system() * 1000.0) & 0x7FFFFFFF  # tur öncesi, gameplay dışı
 	# Turu KUR ama başlatma: geri sayım boyunca ip dönmez, crossing olmaz (oyuncu hazırlanır).
+	_round_scored = false
 	_arena.controller.prepare_round(seed)
 	_arena.rebuild()
 	_hud.reset_for_round(_arena.controller.alive_ids.size())
@@ -67,10 +71,23 @@ func _on_round_ended(placement: int, _coins: int) -> void:
 	_show_results(placement)
 
 
+## Tur sonu: simülasyonu durdur, jetonu hesapla+kaydet (GDD §6.2), sonucu göster.
 func _show_results(placement: int) -> void:
 	_arena.controller.stop()    # sonuç ekranında simülasyon arkada sürmesin
 	var total := int(Config.bots.get("archetype_counts", {}).values().reduce(func(a, b): return a + b, 0)) + 1
-	_results.show_result(maxi(placement, 1), total, _arena.controller.round_no)
+	var place := maxi(placement, 1)
+	var round_no := _arena.controller.round_no
+	var perfects := _arena.controller.perfect_total
+	var earned := 0
+	var daily := false
+	if not _round_scored:
+		_round_scored = true
+		daily = SaveGame.consume_daily_first_win() if place <= 1 else false
+		earned = _rewards.total(place, perfects, daily)
+		SaveGame.add_coins(earned)
+		SaveGame.record_round(place, round_no, total, int(Config.drama.get("early_exit_threshold", 4)))
+		SaveGame.save_game()
+	_results.show_result(place, total, round_no, earned, SaveGame.coins(), perfects, daily)
 	state.go(GameState.State.RESULTS)
 
 

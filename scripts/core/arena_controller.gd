@@ -18,7 +18,8 @@ var rope := Rope.new()
 var ring_radius: float = 9.0
 var round_no: int = 1
 var alive_ids: Array = []              # açısal sıralı canlı id'ler
-var perfect_combo: int = 0
+var perfect_combo: int = 0      # mevcut seri (HUD)
+var perfect_total: int = 0      # tur boyunca toplam perfect (jeton ödülü, GDD §6.2)
 
 var _judge := StumbleJudge.new()
 var _director := RoundDirector.new()
@@ -111,6 +112,7 @@ func reset() -> void:
 	clock.reset()
 	round_no = 1
 	perfect_combo = 0
+	perfect_total = 0
 	_placement = 0
 	_reassign_left = 0
 	_reassign_from.clear()
@@ -238,7 +240,11 @@ func _on_crossed(id: int, result: int, delta_ms: float) -> void:
 	EventBus.rope_crossed.emit(id, result, delta_ms)
 	var j: Jumper = _jumpers[id]
 	if id == PLAYER_ID:
-		perfect_combo = perfect_combo + 1 if result == Rope.CrossResult.PERFECT else 0
+		if result == Rope.CrossResult.PERFECT:
+			perfect_combo += 1
+			perfect_total += 1
+		else:
+			perfect_combo = 0
 	var outcome := _judge.resolve(j, result, Config.pardon_rounds(round_no))
 	match outcome:
 		StumbleJudge.Outcome.STUMBLED:
