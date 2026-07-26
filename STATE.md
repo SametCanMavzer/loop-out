@@ -54,7 +54,8 @@
 ## Teknik notlar (denetimden)
 - HIGH süpürmede **başarılı eğilme nötrdür** (§4.3: sinyal yok) → `crossed` sinyaliyle ölçülemez; ölçüm/HUD/ses (F10) için "temiz eğilme" geri bildirimi gerekirse Rope'a ayrı sinyal eklenmeli. Denetimde bu, sahte "%100 MISS" görüntüsü verdi (ölçüm düzeltildi).
 - Bot MISS oranları (zorluk sıkılaştırması sonrası, 6 seed): high_sweep %8.5 · normal %17.5 · reverse %18.4 · speed_step %21.0 · sudden_stop %24.0 · double_sweep %38.5 (en zor ✓ GDD ★★★★).
-- Kadro eğrisi (12 seed): tur 5/12/19/29 → 13.5/7.5/4.4/2.5 canlı (GDD hedef 13/9/6/3), oyun ~28 turda biter. Orta turlar hedeften biraz hızlı — ince ayar F11.
+- Kadro eğrisi (12 seed): tur 5/12/19/29 → 13.1/7.9/6.1/4.1 canlı (GDD hedef 13/9/6/3), oyun ~29 turda biter (hedef 30+). İnce ayar F11.
+- **Yeniden dizilim artık crossing'i ASKIYA ALMIYOR** (§4.4 yorumu değişti): mantıksal açı da SHRINK_S boyunca tick tick kayar (ArenaView aynı açıyı okuduğu için görsel senkron). Eski askı modeli bir turu "bedava" geçiriyordu — Samet testinde yakalandı ("2 kez üst üste zıplamadım ama elenmedim").
 
 ## Karar günlüğü (yalnız TDD'den sapmalar, 1 satır/karar)
 - Godot sürümü: TDD/CLAUDE.md "4.4" diyor ama yüklü sürüm **4.7.1 stable**; ona hedeflendi (config_version=5, GDScript 2.x aynı). Uyumsuzluk yok.

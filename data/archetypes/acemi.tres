@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = &"acemi"
 reaction_mean_ms = -150.0
-reaction_std_base_ms = 60
-std_round_slope = 3
+reaction_std_base_ms = 52
+std_round_slope = 1.6
 telegraph_fail_prob = 0.0
 quirk = 0
 exit_from = 3

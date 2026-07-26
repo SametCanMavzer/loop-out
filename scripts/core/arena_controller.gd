@@ -28,7 +28,14 @@ var _archetypes := {}                  # id -> BotArchetype (oyuncu: null)
 var _input_queue: InputQueue
 var _r_min := 2.2
 var _r_max := 9.0
-var _suspend_ticks := 0                # yeniden dizilim sırasında crossing askıda (§4.4), TICK tabanlı
+# Yeniden dizilim (§4.4): crossing ASKIYA ALINMAZ — mantıksal açı da görselle birlikte kayar.
+# (Askı modeli bir turu "bedava" geçiriyordu: ip askı penceresinde geçen jumper'ı hiç çözmüyordu.)
+var _reassign_from := {}               # id -> başlangıç açısı
+var _reassign_to := {}                 # id -> hedef açı
+var _reassign_left := 0
+var _reassign_total := 0
+var _radius_from := 9.0
+var _radius_to := 9.0
 var _pending_elim: Array = []
 var _running := false
 var _placement: int = 0                # oyuncunun sıralaması (elendiğinde yazılır)
@@ -105,7 +112,9 @@ func reset() -> void:
 	round_no = 1
 	perfect_combo = 0
 	_placement = 0
-	_suspend_ticks = 0
+	_reassign_left = 0
+	_reassign_from.clear()
+	_reassign_to.clear()
 	_pending_elim.clear()
 	if _input_queue != null:
 		_input_queue.clear()   # sonuç ekranında basılan tuşlar yeni tura sızmasın
@@ -195,9 +204,7 @@ func step() -> void:
 		return
 	clock.advance()
 	var t := clock.current_tick
-	if _suspend_ticks > 0:
-		_suspend_ticks -= 1
-	var suspended := _suspend_ticks > 0
+	_advance_reassign()
 
 	# Tur ilerlemesi: ip tam tur attıkça (GDD §4.2 zorluk eğrisi + §3.2 af sayacı bununla senkron).
 	if rope.turns + 1 != round_no:
@@ -209,18 +216,16 @@ func step() -> void:
 		round_advanced.emit(round_no)
 
 	# Davranış seçimi → telegraf'la kuyruğa (§4.2)
-	if not suspended:
-		var beh := _director.tick(t, round_no)
-		if beh != null:
-			rope.queue_behavior(beh, Config.ms_to_ticks(beh.telegraph_ms))
+	var beh := _director.tick(t, round_no)
+	if beh != null:
+		rope.queue_behavior(beh, Config.ms_to_ticks(beh.telegraph_ms))
 
 	for id in alive_ids:
 		_jumpers[id].tick(t)
 
 	var targets: Array = []
-	if not suspended:                        # ip her zaman döner, yalnız crossing askıda (§4.4)
-		for id in alive_ids:
-			targets.append(_jumpers[id])
+	for id in alive_ids:
+		targets.append(_jumpers[id])
 	rope.tick(t, Config.perfect_ms(round_no), Config.graze_ms(round_no), targets)
 
 	if not _pending_elim.is_empty():
@@ -317,22 +322,42 @@ func should_spectate() -> bool:
 	return alive_ids.size() > 0 and alive_ids.size() <= SPECTATE_ALIVE_MAX
 
 
+## Eleme sonrası yeniden dizilim (§4.4). Açılar ANINDA değil, SHRINK_S boyunca tick tick kayar
+## (görsel ArenaView aynı angle_pos'u okuduğu için otomatik senkron). Crossing kesintisiz sürer:
+## ip o an kimin üstündeyse onu çözer → "bedava tur" oluşmaz, adalet de korunur.
 func _reassign() -> void:
 	var n := alive_ids.size()
 	if n == 0:
 		return
 	var pidx := alive_ids.find(PLAYER_ID)
-	ring_radius = Ring.radius_for(n, _r_min, _r_max)
 	var angles := Ring.distribute_angles(n, maxi(pidx, 0), PLAYER_ANGLE)
-	# Askı TICK tabanlı (§4.8: gameplay'de gerçek-zaman timer/tween YASAK — determinizm).
-	# Görsel geçiş ArenaView'da; burada yalnız crossing adaleti için askı süresi.
-	_suspend_ticks = Config.ms_to_ticks(SHRINK_S * 1000.0)
+	_reassign_from.clear()
+	_reassign_to.clear()
 	for i in n:
 		var id = alive_ids[i]
-		_jumpers[id].angle_pos = angles[i]
-		var src = _jumpers[id].input_source
-		if src is BotBrain:
-			src.reset_intent()
+		_reassign_from[id] = _jumpers[id].angle_pos
+		_reassign_to[id] = angles[i]
+	_radius_from = ring_radius
+	_radius_to = Ring.radius_for(n, _r_min, _r_max)
+	_reassign_total = maxi(Config.ms_to_ticks(SHRINK_S * 1000.0), 1)
+	_reassign_left = _reassign_total
+
+
+## Yeniden dizilim ilerlemesi (her tick). Bitince botlar niyetlerini tazeler.
+func _advance_reassign() -> void:
+	if _reassign_left <= 0:
+		return
+	_reassign_left -= 1
+	var f := 1.0 - float(_reassign_left) / float(_reassign_total)
+	for id in alive_ids:
+		if _reassign_to.has(id):
+			_jumpers[id].angle_pos = lerp_angle(_reassign_from[id], _reassign_to[id], f)
+	ring_radius = lerpf(_radius_from, _radius_to, f)
+	if _reassign_left == 0:
+		for id in alive_ids:
+			var src = _jumpers[id].input_source
+			if src is BotBrain:
+				src.reset_intent()   # konum oturdu → yeni geçiş için yeniden örnekle
 
 
 func jumper(id: int) -> Jumper:
