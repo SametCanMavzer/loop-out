@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://bipatlaarena01"]
+
+; Arena — görsel iskelet (ArenaView) + mantık (ArenaController). Jumper temsilleri koddan.
+
+[ext_resource type="Script" path="res://scripts/core/arena_view.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/core/arena_controller.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://bipatlarope01" path="res://scenes/arena/rope_spinner.tscn" id="3"]
+
+[sub_resource type="PlaneMesh" id="Ground"]
+size = Vector2(28, 28)
+
+[node name="Arena" type="Node3D"]
+script = ExtResource("1")
+
+[node name="ArenaController" type="Node3D" parent="."]
+script = ExtResource("2")
+
+[node name="RopeSpinner" parent="." instance=ExtResource("3")]
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("Ground")
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.777146, 0.629318, 0, -0.629318, 0.777146, 0, 13, 15)
+fov = 60.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 12, 0)
+shadow_enabled = true

@@ -23,6 +23,7 @@ var angle: float = 0.0            # radyan [0,TAU)
 var angular_vel: float = 0.0     # rad/s; işareti dönüş yönü
 var base_angular_vel: float = 0.0  # davranış çarpanları buna uygulanır (dönüş yönü işaret)
 var max_abs_speed: float = 0.0     # base hız tavanı (rad/s, 0 = kısıt yok; §5.1 max_rpm)
+var turns: int = 0                 # tamamlanan tam tur sayısı = oyunun "tur" numarası (GDD §3.2/§4.2)
 var height: Height = Height.LOW
 var mode: Mode = Mode.NORMAL
 
@@ -53,6 +54,7 @@ func reset(start_angle: float = 0.0, vel: float = 0.0) -> void:
 	telegraph_ticks_left = 0
 	current_behavior_id = &"normal"
 	_pending = null
+	turns = 0
 	_effect_ticks_left = 0
 	_double_active = false
 	_deferred.clear()
@@ -147,6 +149,9 @@ func tick(current_tick: int, perfect_ms: int, graze_ms: int, targets: Array) -> 
 	var dir := signi(angular_vel)
 	if step <= 0.0:
 		return
+	# Tam tur tamamlandı mı (yön bağımsız)? → oyunun tur numarası (GDD §4.2).
+	if (dir >= 0 and angle < prev) or (dir < 0 and angle > prev):
+		turns += 1
 	for t in targets:
 		if not t.is_alive:
 			continue
