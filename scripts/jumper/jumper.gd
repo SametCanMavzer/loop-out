@@ -4,12 +4,19 @@ class_name Jumper extends Node3D
 ## is_ducking/is_alive/angle_pos/id alanlarını okur). Autoload'a bağlı DEĞİL: zamanlama
 ## JumperTuning ile enjekte edilir (F5 Config'ten kurar).
 
+const CLEAR_LO := 0.12        # kalkışın ilk %12'si henüz yeterince yüksek değil
+const CLEAR_HI := 0.88        # son %12'de inişe geçilmiştir
+
 var id: int = 0
 var angle_pos: float = 0.0    # çemberdeki açısal konum (§4.4)
 
 # Rope crossing'in okuduğu durum (§4.3)
 var is_alive: bool = true
 var is_airborne: bool = false
+## İpin altından geçebilecek YÜKSEKLİKTE misin? (Model A sıkı sürüm — Samet kararı)
+## Havada olmak yetmez: zıplamanın ilk %CLEAR_LO'luk kalkışı ve son %CLEAR_HI sonrası inişi
+## güvenli değildir. Çok erken zıplayıp inişe geçmişsen ip seni yakalar.
+var is_clear: bool = false
 var is_ducking: bool = false
 var jump_input_tick: int = -1   # son zıplama başlangıcı (crossing delta'sı bunu kullanır)
 
@@ -83,6 +90,14 @@ func _update_state(ct: int) -> void:
 	if is_airborne and _current_jump_held and not _jump_high:
 		if ct - jump_input_tick >= _t.hold_threshold:
 			_jump_high = true
+
+	# Havadaki yükseklik penceresi (Model A sıkı): yalnız yayın ortasında ip altından geçilir.
+	if is_airborne:
+		var air_ticks := _t.high_jump_air if _jump_high else _t.jump_air
+		var frac := float(ct - jump_input_tick) / float(maxi(air_ticks, 1))
+		is_clear = frac >= CLEAR_LO and frac <= CLEAR_HI
+	else:
+		is_clear = false
 
 	# İniş
 	if is_airborne:

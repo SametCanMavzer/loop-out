@@ -53,7 +53,8 @@
 
 ## Teknik notlar (denetimden)
 - HIGH süpürmede **başarılı eğilme nötrdür** (§4.3: sinyal yok) → `crossed` sinyaliyle ölçülemez; ölçüm/HUD/ses (F10) için "temiz eğilme" geri bildirimi gerekirse Rope'a ayrı sinyal eklenmeli. Denetimde bu, sahte "%100 MISS" görüntüsü verdi (ölçüm düzeltildi).
-- Bot MISS oranları (uçtan uca, 6 seed): sudden_stop %9.8 · normal %12.7 · speed_step %13.9 · reverse %14.1 · high_sweep %16.0 · double_sweep %18.8 → GDD §4.1 zorluk yıldızlarıyla uyumlu.
+- Bot MISS oranları (zorluk sıkılaştırması sonrası, 6 seed): high_sweep %8.5 · normal %17.5 · reverse %18.4 · speed_step %21.0 · sudden_stop %24.0 · double_sweep %38.5 (en zor ✓ GDD ★★★★).
+- Kadro eğrisi (12 seed): tur 5/12/19/29 → 13.5/7.5/4.4/2.5 canlı (GDD hedef 13/9/6/3), oyun ~28 turda biter. Orta turlar hedeften biraz hızlı — ince ayar F11.
 
 ## Karar günlüğü (yalnız TDD'den sapmalar, 1 satır/karar)
 - Godot sürümü: TDD/CLAUDE.md "4.4" diyor ama yüklü sürüm **4.7.1 stable**; ona hedeflendi (config_version=5, GDScript 2.x aynı). Uyumsuzluk yok.
@@ -61,6 +62,7 @@
 - difficulty_rounds: GDD §4.1 tam davranış havuzu PDF (docs/gdd.md.pdf) metin okunamadığından §5.1'deki 2 çapa korundu; tam havuz F7'de doldurulacak.
 - Rope decoupling: §3.2 rope_crossed EventBus sinyali; ama Rope'u saf/test edilebilir tutmak için lokal `crossed` sinyali yayar + zamanlama pencerelerini parametre alır (autoload'a bağlı değil). EventBus köprüsü + round→pencere Config eşlemesi F5 GameState'te yapılır. (-s test bağlamı autoload global'lerini çözemiyor; bu decoupling hem doğru mimari hem test şartı.)
 - F7 denetimi: archetype_counts panikci 3→4 (GDD §5.1 "16 kadro"=15 bot; 14'tü). fake_slow telegraf sinyali artık 0-tick'te yayılmıyor (GDD "telegraf YOK" sızıntısı). fake_slow min_round=30 (GDD içinde 25+ vs tier 30+ çelişkisi tier lehine çözüldü). Botlar double_sweep'te basılı zıplar (GDD karşı hamle), davranış başlayınca niyet sıfırlar (bayat zamanlama adaleti), Panikçi telegraf paniği (σ×3, prob 0.6) implement edildi.
+- **Zorluk sıkılaştırması (F8 testi sonrası, Samet kararı — "zıplamasam da elenmiyorum"):** (1) `jump_air_ms` 420→300, `high_jump_air_ms` 700→520, `hold_threshold_ms` 300→180; (2) **Model A sıkı**: havada olmak yetmez, ip geçerken zıplama yayının %12–88 aralığında olmalısın (`Jumper.is_clear`; erken zıplayıp inişe geçmişsen ıskalarsın); (3) af eşiği `pardon_rounds` 5→8 / 7→10 (GDD §3.2'den sapma). Bot arketipleri yeni pencereye kalibre edildi (mean −210→−150 ms, σ'lar ~%33 düşürüldü) — yoksa botlar da toplu eleniyordu (oyun 12-19 turda bitiyordu).
 - **Crossing Model A (F4b HİS TESTİ sonrası, §4.3'ten sapma):** Havadaysan ip geçince en az GRAZE; delta<=perfect ise PERFECT; MISS yalnız yerdeysen. Sudden death'te (graze_ms<=perfect_ms) perfect değilsen MISS. Sebep: §4.3'ün "airborne-ama-erken=MISS" modeli test edilince adaletsiz hissettirdi (GRAZE hiç çıkmıyor, çoğu MISS). Samet onayı ile "havadaysan geçersin" modeline geçildi (§14.4 pencere-ayar kapısı).
 
 ## Teknik borç

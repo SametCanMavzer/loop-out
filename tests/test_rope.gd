@@ -7,7 +7,12 @@ class FakeJumper extends RefCounted:
 	var id: int
 	var angle_pos: float
 	var is_ducking: bool = false
-	var is_airborne: bool = false
+	# is_clear (Model A sıkı) Jumper'da hesaplanır; testte "havadaysa yeterince yüksek" varsayılır.
+	var is_clear: bool = false
+	var is_airborne: bool = false:
+		set(v):
+			is_airborne = v
+			is_clear = v
 	var jump_input_tick: int = 0
 	var is_alive: bool = true
 	func _init(p_id: int, p_angle: float) -> void:

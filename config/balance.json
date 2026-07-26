@@ -4,9 +4,9 @@
     "perfect_ms": 90,
     "graze_ms": 160,
     "input_buffer_ms": 100,
-    "jump_air_ms": 420,
-    "high_jump_air_ms": 700,
-    "hold_threshold_ms": 300,
+    "jump_air_ms": 300,
+    "high_jump_air_ms": 520,
+    "hold_threshold_ms": 180,
     "duck_release_ms": 120,
     "touch_latency_offset_ms": 0
   },
@@ -16,8 +16,8 @@
     "max_rpm": 60
   },
   "stumble_regimes": [
-    { "from_round": 1,  "graze_ms": [90, 160], "pardon_rounds": 5 },
-    { "from_round": 20, "graze_ms": [90, 130], "pardon_rounds": 7 },
+    { "from_round": 1,  "graze_ms": [90, 160], "pardon_rounds": 8 },
+    { "from_round": 20, "graze_ms": [90, 130], "pardon_rounds": 10 },
     { "from_round": 30, "graze_ms": null,      "pardon_rounds": null }
   ],
   "difficulty_rounds": [

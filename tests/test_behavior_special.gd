@@ -6,7 +6,8 @@ class FakeJumper extends RefCounted:
 	var id: int = 1
 	var angle_pos: float = 0.0
 	var is_ducking: bool = false
-	var is_airborne: bool = true    # havada → GRAZE alır (Model A)
+	var is_clear: bool = true       # ip altından geçecek yükseklikte (Model A sıkı)
+	var is_airborne: bool = true
 	var jump_input_tick: int = 0
 	var is_alive: bool = true
 

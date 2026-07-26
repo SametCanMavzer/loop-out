@@ -99,6 +99,31 @@ theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
 text = "DOKUN"
 
+[node name="Countdown" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -60.0
+offset_right = 220.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 64
+horizontal_alignment = 1
+text = "HAZIR?"
+
+[node name="OrientationButton" type="Button" parent="."]
+focus_mode = 0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -170.0
+offset_top = 96.0
+offset_right = -16.0
+offset_bottom = 136.0
+text = "⟳ YATAY/DİKEY"
+
 [node name="WarnFrame" type="Control" parent="."]
 visible = false
 anchors_preset = 15

@@ -36,15 +36,15 @@ func _process(_delta: float) -> bool:
 			push_error("FAIL: graze_ms(25) beklenen 130 (daralan rejim)."); fail += 1
 		if int(cfg.call("graze_ms", 35)) != int(cfg.call("perfect_ms", 35)):
 			push_error("FAIL: graze_ms(35) sudden death'te perfect_ms'e eşit olmalı (graze yok)."); fail += 1
-		# Jumper tuning ms→tick (§6): 420→25, 700→42, 300→18, 120→7, 100→6
+		# Jumper tuning ms→tick (§6): 300→18, 520→31, 180→10, 120→7, 100→6
 		var jt: Variant = cfg.call("jumper_tuning")
-		if jt == null or jt.jump_air != 25 or jt.high_jump_air != 42 or jt.hold_threshold != 18 \
+		if jt == null or jt.jump_air != 18 or jt.high_jump_air != 31 or jt.hold_threshold != 10 \
 				or jt.duck_release != 7 or jt.input_buffer != 6:
 			push_error("FAIL: jumper_tuning tick değerleri yanlış."); fail += 1
-		# Af eşiği (§4.5): rejim geçişleri + sudden death
-		if int(cfg.call("pardon_rounds", 1)) != 5 or int(cfg.call("pardon_rounds", 25)) != 7 \
+		# Af eşiği (§4.5, sıkılaştırılmış): rejim geçişleri + sudden death
+		if int(cfg.call("pardon_rounds", 1)) != 8 or int(cfg.call("pardon_rounds", 25)) != 10 \
 				or int(cfg.call("pardon_rounds", 35)) != -1:
-			push_error("FAIL: pardon_rounds rejim değerleri yanlış (5/7/-1)."); fail += 1
+			push_error("FAIL: pardon_rounds rejim değerleri yanlış (8/10/-1)."); fail += 1
 
 	# Rng determinizmi: aynı seed → aynı ilk değer
 	if rng != null:

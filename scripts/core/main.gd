@@ -47,8 +47,10 @@ func start_new_round() -> void:
 	_arena.controller.prepare_round(seed)
 	_arena.rebuild()
 	_hud.reset_for_round(_arena.controller.alive_ids.size())
+	_hud.show_countdown("HAZIR?")
 	await get_tree().create_timer(COUNTDOWN_S).timeout   # UI beklemesi (gameplay tick'i değil)
 	if state.current == GameState.State.COUNTDOWN:
+		_hud.hide_countdown()
 		state.go(GameState.State.PLAYING)
 		_arena.controller.begin()
 

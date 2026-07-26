@@ -14,6 +14,8 @@ const TELEGRAPH_FADE := 0.5
 @onready var _feedback: Label = $Feedback
 @onready var _behavior: Label = $BehaviorLabel
 @onready var _warn_frame: Control = $WarnFrame
+@onready var _countdown: Label = $Countdown
+@onready var _orientation_button: Button = $OrientationButton   # GEÇİCİ (dev): oryantasyon testi
 
 var _player_id := 0
 var _total := 16
@@ -34,6 +36,14 @@ func _ready() -> void:
 	_feedback.modulate.a = 0.0
 	_behavior.modulate.a = 0.0
 	_warn_frame.visible = false
+	_countdown.visible = false
+	# GEÇİCİ (dev, F14'te kalkar): pencereyi yatay/dikey çevirip §7.2 preset geçişini test et.
+	_orientation_button.pressed.connect(_toggle_orientation)
+
+
+func _toggle_orientation() -> void:
+	var s := DisplayServer.window_get_size()
+	DisplayServer.window_set_size(Vector2i(s.y, s.x))
 
 
 ## Tur başında çağrılır (Main): sayaçları sıfırla.
@@ -44,7 +54,7 @@ func reset_for_round(total: int) -> void:
 	_flash = 0.0
 	_tel_flash = 0.0
 	_warn_frame.visible = false
-	_tap_hint.visible = true
+	_tap_hint.visible = false      # geri sayım bitince açılır
 	_combo.text = ""
 	_alive.text = "%d/%d" % [total, total]
 	_round.text = "TUR 1"
@@ -52,6 +62,19 @@ func reset_for_round(total: int) -> void:
 
 func set_round(round_no: int) -> void:
 	_round.text = "TUR %d" % round_no
+
+
+## Geri sayım göstergesi (GDD §2.3: 1 sn). Bu süre boyunca ip DÖNMEZ, oyuncu hazırlanır.
+func show_countdown(text: String) -> void:
+	_countdown.text = text
+	_countdown.visible = true
+
+
+## Tur başladı: geri sayımı kapat, "DOKUN" ipucunu göster (ilk zıplamaya kadar).
+func hide_countdown() -> void:
+	_countdown.visible = false
+	if not _tapped:
+		_tap_hint.visible = true
 
 
 func _on_ring_shrunk(alive_count: int) -> void:
