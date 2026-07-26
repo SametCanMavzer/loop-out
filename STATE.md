@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 7 — Davranışlar** (F7a–F7f bitti; F7g arena bağlama + editör sırada). F1–F6 tamamlandı ✅
+> Şu an: **Faz 8 — UI** (F8a bitti). F1–F6 tamamlandı ✅ · F7 kod+denetim bitti, editör testi F8 sonunda birlikte yapılacak.
 
 > GDD/TDD PDF'leri `pdftotext -enc UTF-8 docs/gdd.md.pdf out.txt` ile okunabilir (/mingw64/bin). GDD §4.1 tam davranış havuzu (7): normal, speed_step, sudden_stop, reverse, high_sweep, double_sweep, fake_slow. Zorluk eğrisi §4.2 balance.json'a işlendi. Özel mantık gerektirenler: sudden_stop (yarım tur durur), reverse (yön), double_sweep (çift süpürme), fake_slow (telegrafsız, tur25+); speed_step base'i kalıcı artırır.
 
@@ -30,8 +30,12 @@
   - [x] F7d: `scripts/core/round_director.gd` (RoundDirector — ağırlıklı rastgele Rng.behavior, tur bazlı aktif set §4.2, min_round, max-2-ardışık; tick() seçim aralığında davranış döndürür). Decoupled. Test: `tests/test_director.gd`.
   - [x] F7e: Şovcu/Kopyacı arketipleri — BotBrain quirk dalı (SHOWOFF %30 takla→σ×2; COPYCAT oyuncunun zıplaması+gecikme, yoksa kendi örneklemi) + 2 `.tres`. Test: `tests/test_bot_quirk.gd`. NOT: SHOWOFF'un "perfect'te takla" tetiği stokastik σ×2 olarak yorumlandı (botlar nadiren perfect alır; niyet buydu).
   - [x] F7f: `scripts/core/drama_director.gd` (DramaDirector §4.7: kurtarma=streak≥eşik+tur≤3'te Acemi seç, final aday=Sağlam/en düşük σ) + BotBrain σ override (set_sigma_override). Decoupled. Test: `tests/test_drama.gd`.
-  - [ ] F7g: arena'ya bağlama (RoundDirector→rope telegraf, davranışlar canlı, Şovcu/Kopyacı botlar, dram) + [EDİTÖR KONTROLÜ]
+  - [x] F7g: arena'ya bağlama (RoundDirector→rope telegraf, davranışlar canlı, Şovcu/Kopyacı botlar, dram). Kod+denetim bitti; **editör testi F8 sonunda gerçek arena ile birlikte** yapılacak (Samet kararı).
 - [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
+  - [x] F8a: `scripts/core/game_state.gd` (GameState FSM §3.3: MENU→COUNTDOWN→PLAYING→SPECTATE→RESULTS, geçersiz geçiş reddi, reset) + `scripts/ui/ui_router.gd` (UIRouter: ekranlar ağaçta kalır, yalnız visible toggle §7.1) + `main.tscn` §7.1 iskeleti (Arena3D/UILayer{MainMenu,HUD,Results,Characters,SettingsPopup}/FadeLayer). Test: `tests/test_game_state.gd`.
+  - [ ] F8b: ArenaController — dev harness'tan üretime: gerçek 16 kişilik kadro (Config.archetype_counts), tur döngüsü, EventBus köprüsü, GameState sürücüsü
+  - [ ] F8c: HUD (§7.3: kalan sayaç+pulse, combo, ⚠ kenar çerçevesi, TAP ipucu) + Results ekranı + restart reset (<2sn, sahne reload yok)
+  - [ ] F8d: oryantasyon (portrait/landscape anchor preset + kamera tween, §7.2) → [EDİTÖR KONTROLÜ] (F7 testiyle birlikte)
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
 - [ ] **F11 Test/Balans:** determinizm birim testleri + headless sim + tuning
