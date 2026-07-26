@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 8 — UI** (F8a bitti). F1–F6 tamamlandı ✅ · F7 kod+denetim bitti, editör testi F8 sonunda birlikte yapılacak.
+> Şu an: **Faz 9 — Ekonomi** (henüz başlanmadı). F1–F8 tamamlandı ✅ (oyun uçtan uca oynanır: 16 kişi, 7 davranış, HUD, sonuç, restart).
 
 > GDD/TDD PDF'leri `pdftotext -enc UTF-8 docs/gdd.md.pdf out.txt` ile okunabilir (/mingw64/bin). GDD §4.1 tam davranış havuzu (7): normal, speed_step, sudden_stop, reverse, high_sweep, double_sweep, fake_slow. Zorluk eğrisi §4.2 balance.json'a işlendi. Özel mantık gerektirenler: sudden_stop (yarım tur durur), reverse (yön), double_sweep (çift süpürme), fake_slow (telegrafsız, tur25+); speed_step base'i kalıcı artırır.
 
@@ -23,7 +23,7 @@
 - [x] **F6 Botlar:** InputSource + Acemi/Panikçi/Sağlam + zorluk eğrisi bağlantısı ✅
   - [x] F6a: `bot_archetype.gd` (BotArchetype Resource) + `bot_brain.gd` (BotBrain extends InputSource — Rng.bots'tan niyet tick'i örnekleme, sarma-güvenli t_cross tahmini, zorluk eğrisi σ(round), Acemi exit σ şişme). Autoload'suz (rng/rope/jumper enjekte). Birim testi: `tests/test_bot.gd` (determinizm, geçiş penceresi, InputSource sözleşmesi/E12).
   - [x] F6b: 3 arketip `.tres` + arena'da gerçek botlar (BotBrain, Rng.bots) + tur ilerlemesiyle σ büyümesi. **Editör onayı** ("botlar zıplıyor"). Denetimde 3 düzeltme: reset_intent (bayat niyet), eleme erteleme (rope.tick sırasında pozisyon değişimi → sahte MISS; miss oranı %15→%3), tüm jumper'lara zıplama görseli. İnce balans F11.
-- [ ] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram
+- [x] **F7 Davranışlar:** telegraf sistemi + kalan 6 ip davranışı + Şovcu/Kopyacı + dinamik dram ✅
   - [x] F7a: `rope_behavior.gd` (RopeBehavior Resource: id/min_round/weight/telegraph_ms/params) + Rope'a telegraf altyapısı (telegraph_ticks_left geri sayımı, queue_behavior, _apply_behavior speed_mult/height, base_angular_vel, behavior_telegraphed/started sinyalleri). Birim testi: `tests/test_behavior.gd`.
   - [x] F7b: generic 4 davranış `.tres` (normal/speed_step/reverse/high_sweep) + Rope etkileri (base kalıcı: speed_step tempo, reverse yön; geçici: height). Test: `tests/test_behavior.gd` (roster + etkiler).
   - [x] F7c: özel 3 davranış (sudden_stop yarım-tur zamanlı duruş, fake_slow yavaş→snap, double_sweep ertelenmiş ikinci süpürme) + .tres'leri. Rope'a zamanlı hız etkisi (_effect_ticks_left) + _deferred ikinci-süpürme kuyruğu. Test: `tests/test_behavior_special.gd`.
@@ -31,12 +31,12 @@
   - [x] F7e: Şovcu/Kopyacı arketipleri — BotBrain quirk dalı (SHOWOFF %30 takla→σ×2; COPYCAT oyuncunun zıplaması+gecikme, yoksa kendi örneklemi) + 2 `.tres`. Test: `tests/test_bot_quirk.gd`. NOT: SHOWOFF'un "perfect'te takla" tetiği stokastik σ×2 olarak yorumlandı (botlar nadiren perfect alır; niyet buydu).
   - [x] F7f: `scripts/core/drama_director.gd` (DramaDirector §4.7: kurtarma=streak≥eşik+tur≤3'te Acemi seç, final aday=Sağlam/en düşük σ) + BotBrain σ override (set_sigma_override). Decoupled. Test: `tests/test_drama.gd`.
   - [x] F7g: arena'ya bağlama (RoundDirector→rope telegraf, davranışlar canlı, Şovcu/Kopyacı botlar, dram). Kod+denetim bitti; **editör testi F8 sonunda gerçek arena ile birlikte** yapılacak (Samet kararı).
-- [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
+- [x] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon ✅
   - [x] F8a: `scripts/core/game_state.gd` (GameState FSM §3.3: MENU→COUNTDOWN→PLAYING→SPECTATE→RESULTS, geçersiz geçiş reddi, reset) + `scripts/ui/ui_router.gd` (UIRouter: ekranlar ağaçta kalır, yalnız visible toggle §7.1) + `main.tscn` §7.1 iskeleti (Arena3D/UILayer{MainMenu,HUD,Results,Characters,SettingsPopup}/FadeLayer). Test: `tests/test_game_state.gd`.
   - [x] F8b: `arena_controller.gd` (16 kadro Config'ten + deterministik karıştırma, tur=ip tam turu, EventBus köprüsü, spectate kuralı, reset) + `arena_view.gd`/`arena.tscn` (görsel katman) + `main.gd`/`main.tscn` (GameState akışı, geri sayım, tur sonu). Doğrulama: `scenes/dev/sim_balance.tscn` (çok-seed kadro eğrisi + restart bütünlüğü).
   - [x] F8c: `hud.tscn/gd` (canlı sayaç+pulse, tur, combo, PERFECT/GRAZE/MISS, telegraf, ⚠ 4-ColorRect kenar çerçevesi, DOKUN ipucu) + `results.tscn/gd` (sıralama + tur + TEKRAR OYNA) + restart akışı (sahne reload yok; sim'de doğrulandı: 16 canlı/tur 1/tick 0).
   - [x] F8d: `camera_rig.gd` (§7.2 portrait/landscape preset + viewport size_changed tween; `KEEP_WIDTH` ile dar ekranda çember kadraja sığar — eski "ip sığmıyor" sorununun kalıcı çözümü). UI zaten anchor tabanlı, ikinci layout sahnesi yok.
-  - [ ] F8-KAPI: **[EDİTÖR KONTROLÜ]** — gerçek oyun (main.tscn): 16 kişi, HUD, davranışlar, sonuç+restart, pencere yeniden boyutlandırma. F7 davranış testi de burada birlikte yapılacak.
+  - [x] F8-KAPI: **Editör onayı alındı** (gerçek oyun main.tscn: 16 kişi, HUD, davranışlar, sonuç+restart, oryantasyon). F7 davranış testi de bu turda birlikte onaylandı. Testte 1 gerçek bug yakalandı (yeniden dizilimde "bedava tur") ve düzeltildi.
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
 - [ ] **F11 Test/Balans:** determinizm birim testleri + headless sim + tuning
