@@ -27,6 +27,7 @@ func _process(_delta: float) -> bool:
 	if sg == null:
 		push_error("FAIL: SaveGame autoload yok."); print("TEST ECONOMY FAILED"); quit(1); return true
 
+	sg.call("use_test_path", "user://save_test.json")   # gerçek oyuncu kaydını EZME
 	sg.data = sg.call("_defaults")
 	sg.call("add_coins", 120)
 	if int(sg.call("coins")) != 120:

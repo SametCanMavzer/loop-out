@@ -8,6 +8,15 @@ const TEMP_PATH := "user://save.json.tmp"
 const SAVE_VERSION := 1
 
 var data: Dictionary = _defaults()
+## Testler gerçek oyuncu kaydını EZMESİN diye yol değiştirilebilir (test kendi dosyasını kullanır).
+var _path := SAVE_PATH
+var _temp := TEMP_PATH
+
+
+## Yalnız testler için: kayıt dosyasını izole et.
+func use_test_path(path: String) -> void:
+	_path = path
+	_temp = path + ".tmp"
 
 
 func _ready() -> void:
@@ -32,10 +41,10 @@ func _defaults() -> Dictionary:
 
 
 func load_game() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not FileAccess.file_exists(_path):
 		data = _defaults()
 		return
-	var text := FileAccess.get_file_as_string(SAVE_PATH)
+	var text := FileAccess.get_file_as_string(_path)
 	var parsed: Variant = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_warning("[SaveGame] save.json bozuk — varsayılanlara dönüldü.")
@@ -67,9 +76,9 @@ func _migrate(d: Dictionary) -> Dictionary:
 
 ## Atomik yazma: temp'e yaz → rename. Yarım yazım (kapanma/çökme) kaydı bozmaz.
 func save_game() -> bool:
-	var f := FileAccess.open(TEMP_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(_temp, FileAccess.WRITE)
 	if f == null:
-		push_error("[SaveGame] temp dosya açılamadı: %s" % TEMP_PATH)
+		push_error("[SaveGame] temp dosya açılamadı: %s" % _temp)
 		return false
 	f.store_string(JSON.stringify(data, "  "))
 	f.close()
@@ -77,9 +86,9 @@ func save_game() -> bool:
 	if dir == null:
 		push_error("[SaveGame] user:// erişilemedi.")
 		return false
-	if dir.file_exists(SAVE_PATH.get_file()):
-		dir.remove(SAVE_PATH.get_file())
-	var err := dir.rename(TEMP_PATH.get_file(), SAVE_PATH.get_file())
+	if dir.file_exists(_path.get_file()):
+		dir.remove(_path.get_file())
+	var err := dir.rename(_temp.get_file(), _path.get_file())
 	if err != OK:
 		push_error("[SaveGame] rename başarısız (%d)." % err)
 		return false
