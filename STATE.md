@@ -35,7 +35,8 @@
   - [x] F8a: `scripts/core/game_state.gd` (GameState FSM §3.3: MENU→COUNTDOWN→PLAYING→SPECTATE→RESULTS, geçersiz geçiş reddi, reset) + `scripts/ui/ui_router.gd` (UIRouter: ekranlar ağaçta kalır, yalnız visible toggle §7.1) + `main.tscn` §7.1 iskeleti (Arena3D/UILayer{MainMenu,HUD,Results,Characters,SettingsPopup}/FadeLayer). Test: `tests/test_game_state.gd`.
   - [x] F8b: `arena_controller.gd` (16 kadro Config'ten + deterministik karıştırma, tur=ip tam turu, EventBus köprüsü, spectate kuralı, reset) + `arena_view.gd`/`arena.tscn` (görsel katman) + `main.gd`/`main.tscn` (GameState akışı, geri sayım, tur sonu). Doğrulama: `scenes/dev/sim_balance.tscn` (çok-seed kadro eğrisi + restart bütünlüğü).
   - [x] F8c: `hud.tscn/gd` (canlı sayaç+pulse, tur, combo, PERFECT/GRAZE/MISS, telegraf, ⚠ 4-ColorRect kenar çerçevesi, DOKUN ipucu) + `results.tscn/gd` (sıralama + tur + TEKRAR OYNA) + restart akışı (sahne reload yok; sim'de doğrulandı: 16 canlı/tur 1/tick 0).
-  - [ ] F8d: oryantasyon (portrait/landscape anchor preset + kamera tween, §7.2) → [EDİTÖR KONTROLÜ] (F7 testiyle birlikte)
+  - [x] F8d: `camera_rig.gd` (§7.2 portrait/landscape preset + viewport size_changed tween; `KEEP_WIDTH` ile dar ekranda çember kadraja sığar — eski "ip sığmıyor" sorununun kalıcı çözümü). UI zaten anchor tabanlı, ikinci layout sahnesi yok.
+  - [ ] F8-KAPI: **[EDİTÖR KONTROLÜ]** — gerçek oyun (main.tscn): 16 kişi, HUD, davranışlar, sonuç+restart, pencere yeniden boyutlandırma. F7 davranış testi de burada birlikte yapılacak.
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
 - [ ] **F11 Test/Balans:** determinizm birim testleri + headless sim + tuning
@@ -45,7 +46,7 @@
 - [ ] **F15 Yayın:** export + itch + Poki/CrazyGames başvuru
 
 ## Bekleyen [EDİTÖR KONTROLÜ]
-- **F4b-KAPI (GDD Faz 1 HİS TESTİ):** `scenes/dev/play_test.tscn` çalıştır. Mavi kapsül (270°, önde) + dönen ip. **SPACE** ile ip sana yaklaşırken zıpla → üstte PERFECT/GRAZE/MISS + delta ms. **SPACE basılı tut** = yüksek zıplama (daha uzun havada). **S/↓** = eğil (kapsül çömelir). Değerlendir: zamanlama penceresi adil mi, zıplama hissi tatmin edici mi, geç/erken basış doğru cezalandırıyor mu. Sonucu bildir (onay / "şu ayar tuhaf: ...").
+- **F8-KAPI (F7 davranış testi dahil):** `scenes/main.tscn` çalıştır — artık gerçek oyun. Kontrol listesi: (1) 16 kapsül + 1 sn geri sayım sonrası tur başlar; (2) HUD: canlı sayacı elemede pulse eder, tur no artar, PERFECT combo, ⚠ alınca ekran kenarı kırmızı çerçeve, ilk zıplamaya kadar "DOKUN"; (3) davranış telegrafları (⚠ SPEED_STEP / SUDDEN_STOP / REVERSE / HIGH_SWEEP / DOUBLE_SWEEP) ve etkileri okunuyor mu; (4) elenince ≤3 kaldıysa finali izleme, değilse doğrudan sonuç ekranı; (5) TEKRAR OYNA <2 sn'de yeni tur; (6) pencereyi yatay↔dikey boyutlandırınca kamera preset geçişi ve çember kadraja sığması. Kontroller: SPACE zıpla / basılı tut yüksek / S eğil.
 
 ## Bilinen buglar
 (yok)
