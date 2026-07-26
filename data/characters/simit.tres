@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3 uid="uid://bipatlachrsimit"]
+
+[ext_resource type="Script" path="res://scripts/core/character_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"simit"
+display_name = "Simit"
+rarity = 0
+color = Color(0.78, 0.52, 0.22, 1)
+jump_fx = &""
+elim_fx = &""

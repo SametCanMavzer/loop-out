@@ -82,8 +82,44 @@ func _process(_delta: float) -> bool:
 	if not sg.data.has("total_wins"):
 		push_error("FAIL: eksik alan varsayılanla tamamlanmalı."); fail += 1
 
+	# --- Gacha (GDD §6.3): 12 karakter, önce sahip olunmayanlar, deterministik ---
+	var pool := Gacha.load_pool()
+	if pool.size() != 12:
+		push_error("FAIL: karakter havuzu 12 olmalı (%d)." % pool.size()); fail += 1
+	var rarities := {0: 0, 1: 0, 2: 0}
+	for c in pool:
+		rarities[c.rarity] = int(rarities.get(c.rarity, 0)) + 1
+	if rarities[0] != 8 or rarities[1] != 3 or rarities[2] != 1:
+		push_error("FAIL: nadirlik dağılımı 8/3/1 olmalı (%s)." % str(rarities)); fail += 1
+
+	var g1 := Gacha.new(); var rng1 := RandomNumberGenerator.new(); rng1.seed = 77
+	g1.setup(pool, rng1)
+	var g2 := Gacha.new(); var rng2 := RandomNumberGenerator.new(); rng2.seed = 77
+	g2.setup(pool, rng2)
+	var d1 := g1.draw(["default"])
+	var d2 := g2.draw(["default"])
+	if d1 == null or d1.id != d2.id:
+		push_error("FAIL: gacha determinizmi bozuk."); fail += 1
+	if d1 != null and String(d1.id) == "default":
+		push_error("FAIL: sahip olunan karakter önce çekilmemeli."); fail += 1
+
+	# Tüm havuza sahipsen duplikat döner (boş değil)
+	var all_ids: Array = pool.map(func(c): return String(c.id))
+	if g1.draw(all_ids) == null:
+		push_error("FAIL: havuz tamamlanınca da bir karakter dönmeli (duplikat)."); fail += 1
+
+	# 60 çekilişte yaygın > nadir > efsanevi (ağırlıklar makul mü)
+	var counts := {0: 0, 1: 0, 2: 0}
+	var g3 := Gacha.new(); var rng3 := RandomNumberGenerator.new(); rng3.seed = 5
+	g3.setup(pool, rng3)
+	for i in 60:
+		var c := g3.draw(all_ids)     # hepsi sahip → saf ağırlık dağılımı
+		counts[c.rarity] = int(counts[c.rarity]) + 1
+	if counts[0] <= counts[2]:
+		push_error("FAIL: yaygın karakterler efsaneviden sık çıkmalı (%s)." % str(counts)); fail += 1
+
 	if fail == 0:
-		print("TEST ECONOMY OK (ödül matematiği, jeton/karakter, record_round, günlük, atomik kayıt)")
+		print("TEST ECONOMY OK (ödül, jeton/karakter, record_round, günlük, atomik kayıt, gacha 8/3/1)")
 	else:
 		print("TEST ECONOMY FAILED: %d hata" % fail)
 	quit(fail)
