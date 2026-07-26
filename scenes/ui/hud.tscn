@@ -1,0 +1,135 @@
+[gd_scene load_steps=2 format=3 uid="uid://bipatlahud01"]
+
+; Tur içi HUD (GDD §7 / TDD §7.3). Anchor tabanlı — oryantasyon değişiminde aynı node'lar kalır.
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
+
+[node name="HUD" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="Top" type="Control" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 90.0
+mouse_filter = 2
+
+[node name="AliveLabel" type="Label" parent="Top"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -110.0
+offset_top = 18.0
+offset_right = 110.0
+offset_bottom = 74.0
+theme_override_font_sizes/font_size = 42
+horizontal_alignment = 1
+text = "16/16"
+
+[node name="RoundLabel" type="Label" parent="Top"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 24.0
+offset_right = -20.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 2
+text = "TUR 1"
+
+[node name="BehaviorLabel" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 110.0
+offset_right = 200.0
+offset_bottom = 150.0
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = ""
+
+[node name="Feedback" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -220.0
+offset_right = 200.0
+offset_bottom = -160.0
+theme_override_font_sizes/font_size = 44
+horizontal_alignment = 1
+text = ""
+
+[node name="Bottom" type="Control" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -160.0
+mouse_filter = 2
+
+[node name="ComboLabel" type="Label" parent="Bottom"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 10.0
+offset_right = 180.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+text = ""
+
+[node name="TapHint" type="Label" parent="Bottom"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 66.0
+offset_right = 180.0
+offset_bottom = 110.0
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+text = "DOKUN"
+
+[node name="WarnFrame" type="Control" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="T" type="ColorRect" parent="WarnFrame"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 6.0
+color = Color(0.9, 0.15, 0.15, 0.85)
+
+[node name="B" type="ColorRect" parent="WarnFrame"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -6.0
+color = Color(0.9, 0.15, 0.15, 0.85)
+
+[node name="L" type="ColorRect" parent="WarnFrame"]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 6.0
+color = Color(0.9, 0.15, 0.15, 0.85)
+
+[node name="R" type="ColorRect" parent="WarnFrame"]
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+color = Color(0.9, 0.15, 0.15, 0.85)

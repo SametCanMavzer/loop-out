@@ -33,8 +33,8 @@
   - [x] F7g: arena'ya bağlama (RoundDirector→rope telegraf, davranışlar canlı, Şovcu/Kopyacı botlar, dram). Kod+denetim bitti; **editör testi F8 sonunda gerçek arena ile birlikte** yapılacak (Samet kararı).
 - [ ] **F8 UI:** tek sahne router + HUD + sonuç + restart reset + oryantasyon
   - [x] F8a: `scripts/core/game_state.gd` (GameState FSM §3.3: MENU→COUNTDOWN→PLAYING→SPECTATE→RESULTS, geçersiz geçiş reddi, reset) + `scripts/ui/ui_router.gd` (UIRouter: ekranlar ağaçta kalır, yalnız visible toggle §7.1) + `main.tscn` §7.1 iskeleti (Arena3D/UILayer{MainMenu,HUD,Results,Characters,SettingsPopup}/FadeLayer). Test: `tests/test_game_state.gd`.
-  - [ ] F8b: ArenaController — dev harness'tan üretime: gerçek 16 kişilik kadro (Config.archetype_counts), tur döngüsü, EventBus köprüsü, GameState sürücüsü
-  - [ ] F8c: HUD (§7.3: kalan sayaç+pulse, combo, ⚠ kenar çerçevesi, TAP ipucu) + Results ekranı + restart reset (<2sn, sahne reload yok)
+  - [x] F8b: `arena_controller.gd` (16 kadro Config'ten + deterministik karıştırma, tur=ip tam turu, EventBus köprüsü, spectate kuralı, reset) + `arena_view.gd`/`arena.tscn` (görsel katman) + `main.gd`/`main.tscn` (GameState akışı, geri sayım, tur sonu). Doğrulama: `scenes/dev/sim_balance.tscn` (çok-seed kadro eğrisi + restart bütünlüğü).
+  - [x] F8c: `hud.tscn/gd` (canlı sayaç+pulse, tur, combo, PERFECT/GRAZE/MISS, telegraf, ⚠ 4-ColorRect kenar çerçevesi, DOKUN ipucu) + `results.tscn/gd` (sıralama + tur + TEKRAR OYNA) + restart akışı (sahne reload yok; sim'de doğrulandı: 16 canlı/tur 1/tick 0).
   - [ ] F8d: oryantasyon (portrait/landscape anchor preset + kamera tween, §7.2) → [EDİTÖR KONTROLÜ] (F7 testiyle birlikte)
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
