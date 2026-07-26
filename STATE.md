@@ -51,6 +51,10 @@
 ## Bilinen buglar
 (yok)
 
+## Teknik notlar (denetimden)
+- HIGH süpürmede **başarılı eğilme nötrdür** (§4.3: sinyal yok) → `crossed` sinyaliyle ölçülemez; ölçüm/HUD/ses (F10) için "temiz eğilme" geri bildirimi gerekirse Rope'a ayrı sinyal eklenmeli. Denetimde bu, sahte "%100 MISS" görüntüsü verdi (ölçüm düzeltildi).
+- Bot MISS oranları (uçtan uca, 6 seed): sudden_stop %9.8 · normal %12.7 · speed_step %13.9 · reverse %14.1 · high_sweep %16.0 · double_sweep %18.8 → GDD §4.1 zorluk yıldızlarıyla uyumlu.
+
 ## Karar günlüğü (yalnız TDD'den sapmalar, 1 satır/karar)
 - Godot sürümü: TDD/CLAUDE.md "4.4" diyor ama yüklü sürüm **4.7.1 stable**; ona hedeflendi (config_version=5, GDScript 2.x aynı). Uyumsuzluk yok.
 - balance.json: §5.1 şemasında `lookahead_ms` sehven `archetype_counts` içinde; §4.6'ya göre `bots` seviyesine taşındı.

@@ -43,12 +43,14 @@ func start_new_round() -> void:
 		state.reset()
 		state.go(GameState.State.COUNTDOWN)
 	var seed := int(Time.get_unix_time_from_system() * 1000.0) & 0x7FFFFFFF  # tur öncesi, gameplay dışı
-	_arena.controller.start_round(seed)
+	# Turu KUR ama başlatma: geri sayım boyunca ip dönmez, crossing olmaz (oyuncu hazırlanır).
+	_arena.controller.prepare_round(seed)
 	_arena.rebuild()
 	_hud.reset_for_round(_arena.controller.alive_ids.size())
-	await get_tree().create_timer(COUNTDOWN_S).timeout   # kozmetik bekleme (gameplay tick'i değil)
+	await get_tree().create_timer(COUNTDOWN_S).timeout   # UI beklemesi (gameplay tick'i değil)
 	if state.current == GameState.State.COUNTDOWN:
 		state.go(GameState.State.PLAYING)
+		_arena.controller.begin()
 
 
 func _on_player_eliminated(_alive: int) -> void:
@@ -64,6 +66,7 @@ func _on_round_ended(placement: int, _coins: int) -> void:
 
 
 func _show_results(placement: int) -> void:
+	_arena.controller.stop()    # sonuç ekranında simülasyon arkada sürmesin
 	var total := int(Config.bots.get("archetype_counts", {}).values().reduce(func(a, b): return a + b, 0)) + 1
 	_results.show_result(maxi(placement, 1), total, _arena.controller.round_no)
 	state.go(GameState.State.RESULTS)

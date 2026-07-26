@@ -7,7 +7,6 @@ class_name ArenaController extends Node3D
 ## Tur numarası = ipin tamamladığı tam tur sayısı (GDD §3.2 "5 tur temiz geçilirse", §4.2 tablosu).
 
 signal round_advanced(round_no: int)
-signal player_state_changed()          # HUD tazeleme (⚠, combo, canlı sayısı)
 
 const PLAYER_ID := 0
 const PLAYER_ANGLE := PI / 2.0         # oyuncu ekranın önünde sabit (§4.4 270° hizası)
@@ -33,6 +32,7 @@ var _suspend_ticks := 0                # yeniden dizilim sırasında crossing as
 var _pending_elim: Array = []
 var _running := false
 var _placement: int = 0                # oyuncunun sıralaması (elendiğinde yazılır)
+var _seed: int = 0
 
 
 ## Ebeveyn (F8 Main) bağlar. input_queue insan girdisi için; behaviors/archetypes yüklenir.
@@ -63,8 +63,8 @@ func _setup_director() -> void:
 		Config.ms_to_ticks(Config.behavior_select_interval_ms), Config.behavior_max_consecutive)
 
 
-## Yeni tur başlat (restart dahil): tam state reset, sahne yüklenmez (§7.1).
-func start_round(master_seed: int) -> void:
+## Turu KUR ama başlatma (geri sayım ekranı için): kadro dizilir, ip durur, tick ilerlemez.
+func prepare_round(master_seed: int) -> void:
 	reset()
 	Rng.seed_round(master_seed)
 	_setup_director()          # director seed'e bağlı → yeniden kur
@@ -73,9 +73,28 @@ func start_round(master_seed: int) -> void:
 	_spawn_roster()
 	_apply_rescue_drama()
 	_snap_positions()
+	_seed = master_seed
+
+
+## Kurulan turu başlat (geri sayım bitince). Simülasyon buradan itibaren işler.
+func begin() -> void:
+	if _running or _jumpers.is_empty():
+		return
 	_running = true
 	clock.start()
-	EventBus.round_started.emit(round_no, master_seed)
+	EventBus.round_started.emit(round_no, _seed)
+
+
+## Kur + hemen başlat (test/sim kolaylığı).
+func start_round(master_seed: int) -> void:
+	prepare_round(master_seed)
+	begin()
+
+
+## Turu durdur (sonuç ekranına geçince simülasyon arkada sürmesin).
+func stop() -> void:
+	_running = false
+	clock.stop()
 
 
 ## Tüm durumu temizle (restart hazırlığı).
@@ -88,6 +107,8 @@ func reset() -> void:
 	_placement = 0
 	_suspend_ticks = 0
 	_pending_elim.clear()
+	if _input_queue != null:
+		_input_queue.clear()   # sonuç ekranında basılan tuşlar yeni tura sızmasın
 	for id in _jumpers.keys():
 		var j: Jumper = _jumpers[id]
 		if is_instance_valid(j):
@@ -222,8 +243,6 @@ func _on_crossed(id: int, result: int, delta_ms: float) -> void:
 		StumbleJudge.Outcome.ELIMINATED:
 			if not _pending_elim.has(id):
 				_pending_elim.append(id)   # rope.tick sürerken pozisyon değiştirme
-	if id == PLAYER_ID:
-		player_state_changed.emit()
 
 
 func _on_telegraphed(id: StringName) -> void:
@@ -263,7 +282,6 @@ func _eliminate(id: int) -> void:
 	if id == PLAYER_ID:
 		_placement = alive_ids.size() + 1     # kaçıncı bitirdi (1 = kazanan)
 		EventBus.player_eliminated.emit(alive_ids.size())
-		player_state_changed.emit()
 
 
 ## Final 1v1 adayı korunur (§4.7): son botlar arasından Sağlam/en tutarlı olan σ'sını sıkar.
@@ -280,8 +298,9 @@ func _check_end() -> void:
 	if alive_ids.size() <= 1:
 		if alive_ids.has(PLAYER_ID):
 			_placement = 1
-		_running = false
-		clock.stop()
+		elif _placement <= 0:
+			_placement = 1 + alive_ids.size()      # oyuncu son tick'te elendi (kenar durum)
+		stop()
 		EventBus.round_ended.emit(_placement, 0)   # jeton hesabı F9
 
 

@@ -31,6 +31,10 @@ func rebuild() -> void:
 		if is_instance_valid(v.node):
 			v.node.queue_free()
 	_views.clear()
+	for f in _flying:                     # önceki turun uçan gövdeleri kalmasın
+		if is_instance_valid(f.node):
+			f.node.queue_free()
+	_flying.clear()
 	for id in controller.jumper_ids():
 		_create_view(id)
 	_sync_positions(true)
