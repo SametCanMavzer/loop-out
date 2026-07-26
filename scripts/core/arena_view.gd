@@ -54,8 +54,17 @@ func _create_view(id: int) -> void:
 	_views[id] = {"node": node, "cap": cap, "mat": mat, "viz_y": 0.0, "viz_vy": 0.0, "last_jump": -999}
 
 
+## Oyuncu rengi kuşanılan karakterden gelir (GDD §6.3 — yalnız kozmetik); botlar nötr gri.
 func _base_color(id: int) -> Color:
-	return Color(0.35, 0.6, 0.9) if id == ArenaController.PLAYER_ID else Color(0.55, 0.55, 0.58)
+	if id != ArenaController.PLAYER_ID:
+		return Color(0.55, 0.55, 0.58)
+	var ch := load("res://data/characters/%s.tres" % SaveGame.equipped())
+	return (ch as CharacterData).color if ch is CharacterData else Color(0.35, 0.6, 0.9)
+
+
+## Karakter değişince oyuncunun görünümünü tazele (ekrandan çıkmadan görünsün).
+func apply_player_skin() -> void:
+	_refresh_color(ArenaController.PLAYER_ID)
 
 
 func _refresh_color(id: int) -> void:

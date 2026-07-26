@@ -10,6 +10,7 @@ var state := GameState.new()
 @onready var _router: UIRouter = $UILayer
 @onready var _hud: HUD = $UILayer/HUD
 @onready var _results: ResultsScreen = $UILayer/Results
+@onready var _characters: CharactersScreen = $UILayer/Characters
 
 var _arena: ArenaView
 var _input_queue := InputQueue.new()
@@ -30,6 +31,12 @@ func _ready() -> void:
 	_rewards.setup(Config.economy)
 	_router.bind(state)
 	_results.restart_pressed.connect(restart)
+	# Karakterler ekranı: sonuç ekranından açılır (overlay — durum makinesini etkilemez).
+	_results.characters_pressed.connect(func() -> void:
+		_characters.refresh()
+		_router.show_overlay("Characters", true))
+	_characters.closed.connect(func() -> void: _router.show_overlay("Characters", false))
+	_characters.equipped_changed.connect(func(_id: String) -> void: _arena.apply_player_skin())
 	_arena.controller.round_advanced.connect(func(r: int) -> void: _hud.set_round(r))
 	EventBus.round_ended.connect(_on_round_ended)
 	EventBus.player_eliminated.connect(_on_player_eliminated)

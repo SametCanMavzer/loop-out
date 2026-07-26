@@ -3,6 +3,7 @@ class_name ResultsScreen extends Control
 ## Jeton/ödül gösterimi F9 (ekonomi) ile bağlanır. Restart = sahne reload YOK (§7.1).
 
 signal restart_pressed()
+signal characters_pressed()
 
 @onready var _title: Label = $Panel/Title
 @onready var _detail: Label = $Panel/Detail
@@ -12,6 +13,7 @@ signal restart_pressed()
 
 func _ready() -> void:
 	_button.pressed.connect(func() -> void: restart_pressed.emit())
+	($Panel/CharactersButton as Button).pressed.connect(func() -> void: characters_pressed.emit())
 
 
 ## earned: bu turda kazanılan jeton, total_coins: kasadaki toplam (GDD §6.2).

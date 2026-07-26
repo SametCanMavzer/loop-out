@@ -40,8 +40,9 @@
 - [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
   - [x] F9a: `autoload/SaveGame.gd` gerçek implementasyon (§5.2: yükleme+migration zinciri, **atomik yazma** temp→rename, tipli erişim, `record_round` rekor/galibiyet/erken-eleme serisi, `consume_daily_first_win`) + `scripts/core/reward_calculator.gd` (GDD §6.2: 50/25/10/5, +1/perfect, ×3 günlük, ×2 reklam).
   - [x] F9b: ödül akışı bağlandı — tur sonu jeton hesabı → SaveGame'e yazma (tek sefer, `_round_scored`) → Results ekranında "+N jeton / toplam" + perfect sayısı + günlük bonus rozeti. `perfect_total` sayacı. Test: `tests/test_economy.gd`.
-  - [ ] F9c: 12 karakter `.tres` (yaygın 8 / nadir 3 / efsanevi 1, GDD §6.3) + gacha çekilişi (100 jeton, Rng.cosmetic)
-  - [ ] F9d: Karakterler ekranı + jeton sayacı (üst köşe) + dram serisinin arenaya bağlanması → [EDİTÖR KONTROLÜ]
+  - [x] F9c: `character_data.gd` + 12 karakter `.tres` (8 yaygın / 3 nadir / 1 efsanevi; simit-döner TR dokunuşu, GDD §6.3) + `gacha.gd` (ağırlıklı çekiliş Rng.cosmetic, önce sahip olunmayanlar, deterministik havuz). Test kapsamı `test_economy.gd`'de.
+  - [x] F9d: `characters.tscn/characters_screen.gd` (koleksiyon ızgarası, çekiliş butonu, kuşanma, jeton sayacı, toast) + Results'a KARAKTERLER butonu (overlay olarak açılır) + kuşanılan karakter arenada renk olarak görünür (`ArenaView.apply_player_skin`). Dram serisi (`early_exit_streak`) artık gerçek SaveGame verisinden okunuyor.
+  - [ ] F9-KAPI: **[EDİTÖR KONTROLÜ]** — jeton kazanımı, kayıt kalıcılığı (oyunu kapat/aç), çekiliş, kuşanma.
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
 - [ ] **F11 Test/Balans:** determinizm birim testleri + headless sim + tuning
 - [ ] **F12 SDK:** Ads arayüzü + Poki/Crazy adaptörleri + analitik
