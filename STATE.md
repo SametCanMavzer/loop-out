@@ -1,6 +1,6 @@
 # STATE — İP ATLA v1 İlerleme
 > Bu dosya projenin tek rapor kaynağıdır. Her görev sonunda Claude günceller.
-> Şu an: **Faz 9 — Ekonomi** (henüz başlanmadı). F1–F8 tamamlandı ✅ (oyun uçtan uca oynanır: 16 kişi, 7 davranış, HUD, sonuç, restart).
+> Şu an: **Faz 10 — Ses** (henüz başlanmadı). F1–F9 tamamlandı ✅ (oyun uçtan uca oynanır + ekonomi: 16 kişi, 7 davranış, HUD, sonuç, restart, jeton/kayıt/gacha/karakterler).
 
 > GDD/TDD PDF'leri `pdftotext -enc UTF-8 docs/gdd.md.pdf out.txt` ile okunabilir (/mingw64/bin). GDD §4.1 tam davranış havuzu (7): normal, speed_step, sudden_stop, reverse, high_sweep, double_sweep, fake_slow. Zorluk eğrisi §4.2 balance.json'a işlendi. Özel mantık gerektirenler: sudden_stop (yarım tur durur), reverse (yön), double_sweep (çift süpürme), fake_slow (telegrafsız, tur25+); speed_step base'i kalıcı artırır.
 
@@ -37,12 +37,12 @@
   - [x] F8c: `hud.tscn/gd` (canlı sayaç+pulse, tur, combo, PERFECT/GRAZE/MISS, telegraf, ⚠ 4-ColorRect kenar çerçevesi, DOKUN ipucu) + `results.tscn/gd` (sıralama + tur + TEKRAR OYNA) + restart akışı (sahne reload yok; sim'de doğrulandı: 16 canlı/tur 1/tick 0).
   - [x] F8d: `camera_rig.gd` (§7.2 portrait/landscape preset + viewport size_changed tween; `KEEP_WIDTH` ile dar ekranda çember kadraja sığar — eski "ip sığmıyor" sorununun kalıcı çözümü). UI zaten anchor tabanlı, ikinci layout sahnesi yok.
   - [x] F8-KAPI: **Editör onayı alındı** (gerçek oyun main.tscn: 16 kişi, HUD, davranışlar, sonuç+restart, oryantasyon). F7 davranış testi de bu turda birlikte onaylandı. Testte 1 gerçek bug yakalandı (yeniden dizilimde "bedava tur") ve düzeltildi.
-- [ ] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi
+- [x] **F9 Ekonomi:** save + jeton + gacha + karakter Resource sistemi ✅
   - [x] F9a: `autoload/SaveGame.gd` gerçek implementasyon (§5.2: yükleme+migration zinciri, **atomik yazma** temp→rename, tipli erişim, `record_round` rekor/galibiyet/erken-eleme serisi, `consume_daily_first_win`) + `scripts/core/reward_calculator.gd` (GDD §6.2: 50/25/10/5, +1/perfect, ×3 günlük, ×2 reklam).
   - [x] F9b: ödül akışı bağlandı — tur sonu jeton hesabı → SaveGame'e yazma (tek sefer, `_round_scored`) → Results ekranında "+N jeton / toplam" + perfect sayısı + günlük bonus rozeti. `perfect_total` sayacı. Test: `tests/test_economy.gd`.
   - [x] F9c: `character_data.gd` + 12 karakter `.tres` (8 yaygın / 3 nadir / 1 efsanevi; simit-döner TR dokunuşu, GDD §6.3) + `gacha.gd` (ağırlıklı çekiliş Rng.cosmetic, önce sahip olunmayanlar, deterministik havuz). Test kapsamı `test_economy.gd`'de.
   - [x] F9d: `characters.tscn/characters_screen.gd` (koleksiyon ızgarası, çekiliş butonu, kuşanma, jeton sayacı, toast) + Results'a KARAKTERLER butonu (overlay olarak açılır) + kuşanılan karakter arenada renk olarak görünür (`ArenaView.apply_player_skin`). Dram serisi (`early_exit_streak`) artık gerçek SaveGame verisinden okunuyor.
-  - [ ] F9-KAPI: **[EDİTÖR KONTROLÜ]** — jeton kazanımı, kayıt kalıcılığı (oyunu kapat/aç), çekiliş, kuşanma.
+  - [x] F9-KAPI: **Editör onayı alındı** — jeton kazanımı, kayıt kalıcılığı (kapat/aç sonrası jeton+karakter+kuşanma korundu), çekiliş, kuşanılan karakterin arenada görünmesi. Denetimde 1 kusur: testler gerçek `save.json`'u eziyordu → `use_test_path` ile izole edildi.
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
 - [ ] **F11 Test/Balans:** determinizm birim testleri + headless sim + tuning
 - [ ] **F12 SDK:** Ads arayüzü + Poki/Crazy adaptörleri + analitik
