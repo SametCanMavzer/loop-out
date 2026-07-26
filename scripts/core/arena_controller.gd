@@ -29,9 +29,8 @@ var _archetypes := {}                  # id -> BotArchetype (oyuncu: null)
 var _input_queue: InputQueue
 var _r_min := 2.2
 var _r_max := 9.0
-var _suspended := false                # yeniden dizilim sırasında crossing askıda (§4.4)
+var _suspend_ticks := 0                # yeniden dizilim sırasında crossing askıda (§4.4), TICK tabanlı
 var _pending_elim: Array = []
-var _reassign_tween: Tween
 var _running := false
 var _placement: int = 0                # oyuncunun sıralaması (elendiğinde yazılır)
 
@@ -87,10 +86,8 @@ func reset() -> void:
 	round_no = 1
 	perfect_combo = 0
 	_placement = 0
-	_suspended = false
+	_suspend_ticks = 0
 	_pending_elim.clear()
-	if _reassign_tween != null and _reassign_tween.is_valid():
-		_reassign_tween.kill()
 	for id in _jumpers.keys():
 		var j: Jumper = _jumpers[id]
 		if is_instance_valid(j):
@@ -167,10 +164,19 @@ func _snap_positions() -> void:
 
 
 func _physics_process(_dt: float) -> void:
+	step()
+
+
+## Bir simülasyon adımı. Normalde _physics_process çağırır; headless balans simülasyonu (F11)
+## bunu doğrudan çağırarak hızlı koşar — determinizm aynı (tick sayısı özdeş).
+func step() -> void:
 	if not _running:
 		return
 	clock.advance()
 	var t := clock.current_tick
+	if _suspend_ticks > 0:
+		_suspend_ticks -= 1
+	var suspended := _suspend_ticks > 0
 
 	# Tur ilerlemesi: ip tam tur attıkça (GDD §4.2 zorluk eğrisi + §3.2 af sayacı bununla senkron).
 	if rope.turns + 1 != round_no:
@@ -182,7 +188,7 @@ func _physics_process(_dt: float) -> void:
 		round_advanced.emit(round_no)
 
 	# Davranış seçimi → telegraf'la kuyruğa (§4.2)
-	if not _suspended:
+	if not suspended:
 		var beh := _director.tick(t, round_no)
 		if beh != null:
 			rope.queue_behavior(beh, Config.ms_to_ticks(beh.telegraph_ms))
@@ -191,7 +197,7 @@ func _physics_process(_dt: float) -> void:
 		_jumpers[id].tick(t)
 
 	var targets: Array = []
-	if not _suspended:                       # ip her zaman döner, yalnız crossing askıda (§4.4)
+	if not suspended:                        # ip her zaman döner, yalnız crossing askıda (§4.4)
 		for id in alive_ids:
 			targets.append(_jumpers[id])
 	rope.tick(t, Config.perfect_ms(round_no), Config.graze_ms(round_no), targets)
@@ -299,18 +305,15 @@ func _reassign() -> void:
 	var pidx := alive_ids.find(PLAYER_ID)
 	ring_radius = Ring.radius_for(n, _r_min, _r_max)
 	var angles := Ring.distribute_angles(n, maxi(pidx, 0), PLAYER_ANGLE)
-	_suspended = true
-	if _reassign_tween != null and _reassign_tween.is_valid():
-		_reassign_tween.kill()
+	# Askı TICK tabanlı (§4.8: gameplay'de gerçek-zaman timer/tween YASAK — determinizm).
+	# Görsel geçiş ArenaView'da; burada yalnız crossing adaleti için askı süresi.
+	_suspend_ticks = Config.ms_to_ticks(SHRINK_S * 1000.0)
 	for i in n:
 		var id = alive_ids[i]
 		_jumpers[id].angle_pos = angles[i]
 		var src = _jumpers[id].input_source
 		if src is BotBrain:
 			src.reset_intent()
-	_reassign_tween = create_tween()
-	_reassign_tween.tween_interval(SHRINK_S)      # görsel tween ArenaView'da; burada askı süresi
-	_reassign_tween.tween_callback(func() -> void: _suspended = false)
 
 
 func jumper(id: int) -> Jumper:
