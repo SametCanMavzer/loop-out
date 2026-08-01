@@ -97,3 +97,18 @@ func set_enabled(on: bool) -> void:
 
 func is_enabled() -> bool:
 	return _enabled
+
+
+## Reklam süresince sesi geçici kıs (Poki/CrazyGames kuralı: ad başlarken mute, bitince geri).
+## Kullanıcının ses ayarını BOZMAZ — önceki durum saklanıp aynen geri yüklenir.
+var _mute_stack := 0
+
+func push_mute() -> void:
+	_mute_stack += 1
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
+
+
+func pop_mute() -> void:
+	_mute_stack = maxi(_mute_stack - 1, 0)
+	if _mute_stack == 0:
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), not _enabled)

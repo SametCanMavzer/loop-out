@@ -4,6 +4,7 @@ class_name ResultsScreen extends Control
 
 signal restart_pressed()
 signal characters_pressed()
+signal double_pressed()      # ödüllü reklam: jeton ×2 (GDD §6.2)
 
 @onready var _title: Label = $Panel/Title
 @onready var _detail: Label = $Panel/Detail
@@ -11,9 +12,21 @@ signal characters_pressed()
 @onready var _button: Button = $Panel/RestartButton
 
 
+@onready var _double: Button = $Panel/DoubleButton
+
+
 func _ready() -> void:
 	_button.pressed.connect(func() -> void: restart_pressed.emit())
 	($Panel/CharactersButton as Button).pressed.connect(func() -> void: characters_pressed.emit())
+	_double.pressed.connect(func() -> void:
+		_double.disabled = true
+		double_pressed.emit())
+
+
+## Ödüllü reklam butonu yalnız servis destekliyorsa görünür (§12.3: NullAds → gizli).
+func set_double_available(on: bool) -> void:
+	_double.visible = on
+	_double.disabled = not on
 
 
 ## earned: bu turda kazanılan jeton, total_coins: kasadaki toplam (GDD §6.2).

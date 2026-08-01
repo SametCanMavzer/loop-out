@@ -20,6 +20,10 @@ var _input_queue := InputQueue.new()
 var _rewards := RewardCalculator.new()
 var _audio_director := AudioDirector.new()
 var _round_scored := false      # aynı turun ödülü iki kez yazılmasın
+var _last_earned := 0           # ödüllü reklam (×2) bu değeri bir kez daha ekler
+var _last_place := 1
+var _last_total := 16
+var _last_daily := false
 
 
 func _ready() -> void:
@@ -38,6 +42,7 @@ func _ready() -> void:
 	_audio_director.setup(_arena.controller)
 	_router.bind(state)
 	_results.restart_pressed.connect(restart)
+	_results.double_pressed.connect(_on_double_reward)
 	# Karakterler ekranı: sonuç ekranından açılır (overlay — durum makinesini etkilemez).
 	_results.characters_pressed.connect(func() -> void:
 		_characters.refresh()
@@ -105,12 +110,40 @@ func _show_results(placement: int) -> void:
 		SaveGame.add_coins(earned)
 		SaveGame.record_round(place, round_no, total, int(Config.drama.get("early_exit_threshold", 4)))
 		SaveGame.save_game()
+	_last_earned = earned
+	_last_place = place
+	_last_total = total
+	_last_daily = daily
 	_results.show_result(place, total, round_no, earned, SaveGame.coins(), perfects, daily)
+	# Ödüllü reklam butonu: yalnız portal destekliyorsa ve kazanılacak jeton varsa (§12.3, GDD §6.2)
+	_results.set_double_available(Ads.has_rewarded() and earned > 0)
 	state.go(GameState.State.RESULTS)
 
 
+## Reklam izlendi → bu turun jetonu bir kez daha eklenir (toplamda ×2, GDD §6.2).
+func _on_double_reward() -> void:
+	if _last_earned <= 0:
+		return
+	Ads.rewarded(func(success: bool) -> void:
+		if not success:
+			_results.set_double_available(false)
+			return
+		SaveGame.add_coins(_last_earned)
+		SaveGame.save_game()
+		_results.show_result(_last_place, _last_total, _arena.controller.round_no,
+			_last_earned * 2, SaveGame.coins(), _arena.controller.perfect_total, _last_daily)
+		_results.set_double_available(false)
+		Audio.play(&"coin"))
+
+
 func restart() -> void:
+	Analytics.track_restart()
 	start_new_round()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
+		Analytics.track_session_end()
 
 
 func arena() -> ArenaView:

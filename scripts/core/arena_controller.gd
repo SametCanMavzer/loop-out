@@ -44,6 +44,7 @@ var _pending_elim: Array = []
 var _running := false
 var _placement: int = 0                # oyuncunun sıralaması (elendiğinde yazılır)
 var _seed: int = 0
+var _last_player_delta_ms: float = 0.0   # analitik: oyuncunun son geçiş sapması (§13.4)
 
 
 ## Ebeveyn (F8 Main) bağlar. input_queue insan girdisi için; behaviors/archetypes yüklenir.
@@ -248,6 +249,7 @@ func _on_crossed(id: int, result: int, delta_ms: float) -> void:
 	EventBus.rope_crossed.emit(id, result, delta_ms)
 	var j: Jumper = _jumpers[id]
 	if id == PLAYER_ID:
+		_last_player_delta_ms = delta_ms
 		if result == Rope.CrossResult.PERFECT:
 			perfect_combo += 1
 			perfect_total += 1
@@ -296,6 +298,8 @@ func _flush_eliminations() -> void:
 func _eliminate(id: int) -> void:
 	alive_ids.erase(id)
 	var cause := 0
+	if id == PLAYER_ID:      # §13.4: yalnız oyuncunun elemesi analitiğe girer
+		Analytics.track_elimination(round_no, "miss", rope.current_behavior_id, _last_player_delta_ms)
 	EventBus.jumper_eliminated.emit(id, cause)
 	EventBus.ring_shrunk.emit(alive_ids.size())
 	if id == PLAYER_ID:
