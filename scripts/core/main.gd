@@ -15,6 +15,7 @@ var state := GameState.new()
 var _arena: ArenaView
 var _input_queue := InputQueue.new()
 var _rewards := RewardCalculator.new()
+var _audio_director := AudioDirector.new()
 var _round_scored := false      # aynı turun ödülü iki kez yazılmasın
 
 
@@ -29,6 +30,9 @@ func _ready() -> void:
 	_input_queue.setup(_arena.controller.clock)
 
 	_rewards.setup(Config.economy)
+	_audio_director.name = "AudioDirector"
+	add_child(_audio_director)
+	_audio_director.setup(_arena.controller)
 	_router.bind(state)
 	_results.restart_pressed.connect(restart)
 	# Karakterler ekranı: sonuç ekranından açılır (overlay — durum makinesini etkilemez).
@@ -64,6 +68,7 @@ func start_new_round() -> void:
 		_hud.hide_countdown()
 		state.go(GameState.State.PLAYING)
 		_arena.controller.begin()
+		Audio.start_music()
 
 
 func _on_player_eliminated(_alive: int) -> void:

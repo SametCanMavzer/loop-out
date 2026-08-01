@@ -44,6 +44,9 @@
   - [x] F9d: `characters.tscn/characters_screen.gd` (koleksiyon ızgarası, çekiliş butonu, kuşanma, jeton sayacı, toast) + Results'a KARAKTERLER butonu (overlay olarak açılır) + kuşanılan karakter arenada renk olarak görünür (`ArenaView.apply_player_skin`). Dram serisi (`early_exit_streak`) artık gerçek SaveGame verisinden okunuyor.
   - [x] F9-KAPI: **Editör onayı alındı** — jeton kazanımı, kayıt kalıcılığı (kapat/aç sonrası jeton+karakter+kuşanma korundu), çekiliş, kuşanılan karakterin arenada görünmesi. Denetimde 1 kusur: testler gerçek `save.json`'u eziyordu → `use_test_path` ile izole edildi.
 - [ ] **F10 Ses:** SFX havuzu + vuş metronomu + müzik pitch bağlama + slow-motion
+  - [x] F10a: `autoload/Audio.gd` gerçek implementasyon (§8.1 Master→Music/SFX bus'ları çalışma zamanında kurulur; §8.2 8'li round-robin havuz + `play(name, pitch_var)`; §8.3 `set_music_speed` = rpm/start_rpm; tek toggle = Master mute) + `scripts/core/sfx_gen.gd` **prosedürel placeholder sesler** (whoosh/perfect/graze/stumble/eliminate/telegraph/pardon/coin + ritmik müzik loop'u). Ses dosyası bağımlılığı yok → sistem şimdi test edilebilir; F14'te CC0 kayıtlarla değişecek (§15.3), API aynı kalır.
+  - [x] F10b: `scripts/core/audio_director.gd` — EventBus sinyalleri → sesler (vuş metronomu `rope_swept_front` sinyalinden, **crossing sonucunu beklemeden** §8.2), müzik temposu ip hızına bağlı, eleme **slow-motion** (§4.9: time_scale 0.3, gerçek zamanlı 0.4 sn → tick sayısı değişmez, determinizm korunur), **M tuşu** ses aç/kapa (ayarlar ekranı F13'e kadar geçici). Test: `tests/test_audio.gd`.
+  - [ ] F10-KAPI: **[EDİTÖR KONTROLÜ]** — vuş ritmi, zamanlama sesleri, telegraf jingle'ı, eleme sesi+slow-motion, müziğin ip hızıyla hızlanması, M ile susturma.
 - [ ] **F11 Test/Balans:** determinizm birim testleri + headless sim + tuning
 - [ ] **F12 SDK:** Ads arayüzü + Poki/Crazy adaptörleri + analitik
 - [ ] **F13 Yerelleştirme:** TR/EN + ayarlar + "rakipler hakkında" metni

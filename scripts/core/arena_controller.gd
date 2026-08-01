@@ -7,6 +7,9 @@ class_name ArenaController extends Node3D
 ## Tur numarası = ipin tamamladığı tam tur sayısı (GDD §3.2 "5 tur temiz geçilirse", §4.2 tablosu).
 
 signal round_advanced(round_no: int)
+## İp oyuncu bölgesinden (ekranın önü) geçti → "vuş" metronomu (§8.2). Crossing SONUCU beklenmez:
+## ritim bilgisi önden gelir, ses sonuçtan bağımsızdır.
+signal rope_swept_front()
 
 const PLAYER_ID := 0
 const PLAYER_ANGLE := PI / 2.0         # oyuncu ekranın önünde sabit (§4.4 270° hizası)
@@ -228,7 +231,12 @@ func step() -> void:
 	var targets: Array = []
 	for id in alive_ids:
 		targets.append(_jumpers[id])
+	var prev_angle := rope.angle
 	rope.tick(t, Config.perfect_ms(round_no), Config.graze_ms(round_no), targets)
+	# Vuş metronomu (§8.2): ip oyuncu bölgesini süpürdü mü? (oyuncu elense de ritim sürer)
+	var sweep := absf(rope.angular_vel) * TickClock.TICK_DT
+	if sweep > 0.0 and Rope.swept_past(prev_angle, PLAYER_ANGLE, sweep, signi(rope.angular_vel)):
+		rope_swept_front.emit()
 
 	if not _pending_elim.is_empty():
 		_flush_eliminations()
