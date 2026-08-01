@@ -66,8 +66,33 @@ func _process(_delta: float) -> bool:
 	if AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")):
 		push_error("FAIL: ses açılınca mute kalkmalı."); fail += 1
 
+	# --- Determinizm: ses HİÇBİR Rng stream'ini tüketmemeli (§4.8) ---
+	# Aksi hâlde "ses açık/kapalı" kozmetik akışı kaydırır (eleme fırlatma yönleri değişir).
+	var rng_node := root.get_node_or_null(^"Rng")
+	if rng_node == null:
+		push_error("FAIL: Rng autoload yok."); fail += 1
+	else:
+		audio.call("set_enabled", true)
+		rng_node.call("seed_round", 4242)
+		for i in 6:
+			audio.call("play", &"whoosh", 0.1)
+			audio.call("play", &"perfect", 0.05)
+		var with_sound: int = rng_node.get("cosmetic").randi()
+
+		audio.call("set_enabled", false)
+		rng_node.call("seed_round", 4242)
+		for i in 6:
+			audio.call("play", &"whoosh", 0.1)
+			audio.call("play", &"perfect", 0.05)
+		var without_sound: int = rng_node.get("cosmetic").randi()
+		audio.call("set_enabled", true)
+
+		if with_sound != without_sound:
+			push_error("FAIL: ses çalmak Rng.cosmetic'i tüketiyor — ses açık/kapalı kozmetik determinizmi bozuyor.")
+			fail += 1
+
 	if fail == 0:
-		print("TEST AUDIO OK (SFX üretimi, bus, havuz round-robin, müzik pitch, mute)")
+		print("TEST AUDIO OK (SFX üretimi, bus, havuz, müzik pitch, mute, Rng izolasyonu)")
 	else:
 		print("TEST AUDIO FAILED: %d hata" % fail)
 	quit(fail)

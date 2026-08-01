@@ -3,6 +3,9 @@ class_name MainRoot extends Node3D
 ## Sahne HİÇ değişmez; restart = ArenaController.reset() + yeni tur (sahne reload YOK).
 
 const COUNTDOWN_S := 1.0    # GDD §2.3: "OYNA → 1 sn geri sayım → tur başlar"
+## Elenme sahnesi (GDD §5.2): savrulma + slow-motion görünsün diye sonuç ekranı kısa gecikir.
+## Gerçek zamanlı ölçülür (slow-mo sırasında time_scale 0.3'tür).
+const ELIM_SCENE_S := 0.75
 
 var state := GameState.new()
 
@@ -72,10 +75,13 @@ func start_new_round() -> void:
 
 
 func _on_player_eliminated(_alive: int) -> void:
-	# GDD §5.4: ≤3 kalan varsa finali izlet, değilse doğrudan sonuç (ölü süre sıfır).
+	# GDD §5.4: ≤3 kalan varsa finali izlet, değilse sonuç ekranı.
 	if _arena.controller.should_spectate():
 		state.go(GameState.State.SPECTATE)
-	else:
+		return
+	# Elenme sahnesini (ragdoll savrulma + slow-motion) göster, sonra sonuç ekranı.
+	await get_tree().create_timer(ELIM_SCENE_S, true, false, true).timeout
+	if state.current == GameState.State.PLAYING:      # bu sırada tur bitmediyse
 		_show_results(_arena.controller.placement())
 
 

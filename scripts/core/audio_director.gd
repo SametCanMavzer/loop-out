@@ -8,10 +8,12 @@ const SLOWMO_REAL_S := 0.4     # gerçek zaman (time_scale'den bağımsız)
 var _controller: ArenaController
 var _player_id := 0
 var _slowmo_active := false
+var _start_rpm := 25.0        # her karede Config sözlüğü aramamak için önbellek (§11 bütçe)
 
 
 func setup(controller: ArenaController) -> void:
 	_controller = controller
+	_start_rpm = float(Config.rope.get("start_rpm", 25))
 	_controller.rope_swept_front.connect(_on_swept)          # "vuş" metronomu (§8.2)
 	EventBus.rope_crossed.connect(_on_crossed)
 	EventBus.jumper_stumbled.connect(_on_stumbled)
@@ -28,7 +30,7 @@ func _process(_dt: float) -> void:
 		return
 	# Müzik temposu ip hızıyla (§8.3): pitch_scale = rpm / start_rpm.
 	var rpm := absf(_controller.rope.angular_vel) * 60.0 / TAU
-	Audio.set_music_speed(rpm, float(Config.rope.get("start_rpm", 25)))
+	Audio.set_music_speed(rpm, _start_rpm)
 
 
 func _on_swept() -> void:

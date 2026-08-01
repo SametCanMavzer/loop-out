@@ -13,9 +13,14 @@ var _sfx: Dictionary = {}          # StringName -> AudioStream
 var _music: AudioStreamPlayer
 var _music_base_pitch := 1.0
 var _enabled := true
+## Perde varyasyonu KENDİ rng'sinden gelir: Rng.cosmetic'i tüketmez. Aksi hâlde "ses açık/kapalı"
+## kozmetik stream'i kaydırır (eleme fırlatma yönleri değişir) ve Rng autoload'u Audio'dan SONRA
+## yüklendiği için sıra riski doğar. Ses hiçbir stream'i etkilemez.
+var _sfx_rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	_sfx_rng.randomize()
 	_setup_buses()
 	_build_library()
 	for i in POOL_SIZE:
@@ -59,7 +64,7 @@ func play(sfx_name: StringName, pitch_var: float = 0.0) -> void:
 	var p := _pool[_next]
 	_next = (_next + 1) % POOL_SIZE
 	p.stream = _sfx[sfx_name]
-	p.pitch_scale = 1.0 + (Rng.cosmetic.randf_range(-pitch_var, pitch_var) if pitch_var > 0.0 else 0.0)
+	p.pitch_scale = 1.0 + (_sfx_rng.randf_range(-pitch_var, pitch_var) if pitch_var > 0.0 else 0.0)
 	p.play()
 
 
