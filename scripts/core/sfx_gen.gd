@@ -110,27 +110,122 @@ static func coin() -> AudioStreamWAV:
 	return _make(out)
 
 
-## Ritmik müzik loop'u (placeholder): basit kick+hihat deseni. pitch_scale ile hızlanır (§8.3).
-static func music_loop(bars: int = 2, bpm: float = 120.0) -> AudioStreamWAV:
+## Ritmik müzik loop'u (placeholder, §8.3): chiptune groove — kick/snare/hihat + minör
+## pentatonik bass ostinato + hafif arp. Melodik motif kasten kısa/ritmik tutuldu ki
+## pitch_scale ile hızlanınca (gerilim) çirkinleşmesin.
+## 16 adım/bar (16'lık grid). Sesler "voice" olarak yazılır → üretim hızlı.
+static func music_loop(bars: int = 4, bpm: float = 132.0) -> AudioStreamWAV:
 	var beat := 60.0 / bpm
-	var n := int(RATE * beat * 4.0 * bars)
+	var step_s := beat * 0.25                      # 16'lık
+	var steps_per_bar := 16
+	var total_steps := steps_per_bar * bars
+	var n := int(RATE * step_s * total_steps)
 	var out := PackedFloat32Array(); out.resize(n)
-	var rng := RandomNumberGenerator.new(); rng.seed = 3
-	var step := int(RATE * beat * 0.5)              # 8'lik
-	for i in n:
-		var pos := i % step
-		var step_idx := int(i / step) % 8
-		var k := float(pos) / float(step)
-		var v := 0.0
-		if step_idx % 4 == 0:                        # kick
-			v += sin(TAU * lerpf(120.0, 45.0, k) * float(pos) / RATE) * pow(1.0 - k, 3.0) * 0.7
-		if step_idx % 2 == 1:                        # hihat
-			v += rng.randf_range(-1.0, 1.0) * pow(1.0 - k, 12.0) * 0.18
-		out[i] = v
+
+	# Desenler (1 bar, 16 adım). Sürükleyici ama basit bir groove.
+	var kick  := [1,0,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0]
+	var snare := [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0]
+	var hat   := [1,0,1,1, 1,0,1,0, 1,0,1,1, 1,0,1,1]
+	var open  := [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0]   # açık hihat vurgusu
+	# A minör pentatonik bass (A2 C3 D3 E3 G3) — bar başına farklı kök.
+	var roots := [110.00, 98.00, 130.81, 82.41]         # A2, G2, C3, E2
+	var bass_hits := [1,0,0,1, 0,0,1,0, 1,0,0,1, 0,1,0,0]
+	# Arp: kökün 5'lisi/oktavı, seyrek — melodi değil renk.
+	var arp_hits := [0,0,1,0, 0,0,0,1, 0,0,1,0, 0,0,0,1]
+
+	var rng := RandomNumberGenerator.new(); rng.seed = 9
+
+	for s_i in total_steps:
+		var bar := int(s_i / steps_per_bar)
+		var st := s_i % steps_per_bar
+		var at := int(s_i * step_s * RATE)
+		var root: float = roots[bar % roots.size()]
+		if kick[st] == 1:
+			_voice_kick(out, at)
+		if snare[st] == 1:
+			_voice_snare(out, at, rng)
+		if hat[st] == 1:
+			_voice_hat(out, at, rng, open[st] == 1)
+		if bass_hits[st] == 1:
+			_voice_bass(out, at, root, step_s * 1.6)
+		if arp_hits[st] == 1:
+			_voice_arp(out, at, root * 3.0, step_s * 0.9)
+
 	var s := _make(out)
 	s.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	s.loop_begin = 0
 	s.loop_end = n
 	return s
+
+
+static func _add(buf: PackedFloat32Array, at: int, i: int, v: float) -> void:
+	var idx := at + i
+	if idx >= 0 and idx < buf.size():
+		buf[idx] = clampf(buf[idx] + v, -1.0, 1.0)
+
+
+## Kick: 140→45 Hz sweep + tık; punch için hızlı exp zarf.
+static func _voice_kick(buf: PackedFloat32Array, at: int) -> void:
+	var n := int(RATE * 0.16)
+	var phase := 0.0
+	for i in n:
+		var k := float(i) / float(n)
+		var f := lerpf(140.0, 45.0, pow(k, 0.35))
+		phase += TAU * f / RATE
+		var click := (1.0 - k) if k < 0.02 else 0.0
+		_add(buf, at, i, (sin(phase) * pow(1.0 - k, 2.2) + click * 0.3) * 0.85)
+
+
+## Snare: gürültü + gövde tonu.
+static func _voice_snare(buf: PackedFloat32Array, at: int, rng: RandomNumberGenerator) -> void:
+	var n := int(RATE * 0.13)
+	var phase := 0.0
+	var hp := 0.0
+	var prev := 0.0
+	for i in n:
+		var k := float(i) / float(n)
+		var noise := rng.randf_range(-1.0, 1.0)
+		hp = noise - prev                            # basit yüksek geçiren → çıtırtı
+		prev = noise
+		phase += TAU * 185.0 / RATE
+		_add(buf, at, i, (hp * 0.55 + sin(phase) * 0.35) * pow(1.0 - k, 3.0) * 0.5)
+
+
+## Hihat: çok kısa parlak gürültü (açık varyantı daha uzun).
+static func _voice_hat(buf: PackedFloat32Array, at: int, rng: RandomNumberGenerator, is_open: bool) -> void:
+	var n := int(RATE * (0.09 if is_open else 0.03))
+	var prev := 0.0
+	for i in n:
+		var k := float(i) / float(n)
+		var noise := rng.randf_range(-1.0, 1.0)
+		var hp := noise - prev
+		prev = noise
+		_add(buf, at, i, hp * pow(1.0 - k, 2.5) * (0.16 if is_open else 0.12))
+
+
+## Bass: kare dalga (chiptune) + hafif alçak geçiren yumuşatma.
+static func _voice_bass(buf: PackedFloat32Array, at: int, freq: float, dur: float) -> void:
+	var n := int(RATE * dur)
+	var phase := 0.0
+	var lp := 0.0
+	for i in n:
+		var k := float(i) / float(n)
+		phase += TAU * freq / RATE
+		var sq := 1.0 if sin(phase) >= 0.0 else -1.0
+		lp = lerpf(lp, sq, 0.35)
+		var env := minf(k / 0.02, 1.0) * pow(1.0 - k, 1.2)
+		_add(buf, at, i, lp * env * 0.30)
+
+
+## Arp: kısa üçgen dalga rengi (melodi değil vurgu).
+static func _voice_arp(buf: PackedFloat32Array, at: int, freq: float, dur: float) -> void:
+	var n := int(RATE * dur)
+	var phase := 0.0
+	for i in n:
+		var k := float(i) / float(n)
+		phase += TAU * freq / RATE
+		var tri := asin(sin(phase)) * (2.0 / PI)     # üçgen
+		_add(buf, at, i, tri * pow(1.0 - k, 3.0) * 0.14)
 
 
 static func _tone_pair(f1: float, f2: float, dur: float, vol: float) -> AudioStreamWAV:
