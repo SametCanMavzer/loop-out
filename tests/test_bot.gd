@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F6a Bot testi: niyet örnekleme determinizmi + geçiş penceresi içinde zıplama + arketip farkı.
 ## (godot --headless -s res://tests/test_bot.gd)
 
@@ -35,7 +35,7 @@ func _run_until_jump(seed: int, arch: BotArchetype, round_no: int) -> Dictionary
 		rope.angle = wrapf(rope.angle + rope.angular_vel * Rope.TICK_DT, 0.0, TAU)
 	return {"jump": jump_tick, "cross_now": t_cross_at_sample}
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 
 	# --- Determinizm: aynı seed → aynı zıplama tick'i ---
@@ -69,5 +69,4 @@ func _process(_delta: float) -> bool:
 		print("TEST BOT OK (niyet determinizmi, geçiş penceresi, zorluk eğrisi, InputSource)")
 	else:
 		print("TEST BOT FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

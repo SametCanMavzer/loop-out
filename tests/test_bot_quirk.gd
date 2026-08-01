@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F7e Şovcu/Kopyacı testi. (godot --headless -s res://tests/test_bot_quirk.gd)
 
 class FakeRope extends RefCounted:
@@ -22,7 +22,7 @@ func _first_jump(bot: BotBrain, rope: FakeRope, step: float) -> int:
 		rope.angle = wrapf(rope.angle + rope.angular_vel * Rope.TICK_DT, 0.0, TAU)
 	return jt
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	var base := Rope.rpm_to_rad_per_sec(25.0)
 	var step := base * Rope.TICK_DT
@@ -30,7 +30,7 @@ func _process(_delta: float) -> bool:
 	var kopya := load("res://data/archetypes/kopyaci.tres") as BotArchetype
 	var none := load("res://data/archetypes/saglam.tres") as BotArchetype
 	if sovcu == null or kopya == null:
-		push_error("FAIL: quirk .tres yüklenemedi."); print("TEST BOT QUIRK FAILED"); quit(1); return true
+		push_error("FAIL: quirk .tres yüklenemedi."); print("TEST BOT QUIRK FAILED"); return 1
 	if sovcu.quirk != 1 or kopya.quirk != 2:
 		push_error("FAIL: quirk değerleri yanlış (sovcu=1, kopyaci=2)."); fail += 1
 
@@ -97,5 +97,4 @@ func _process(_delta: float) -> bool:
 		print("TEST BOT QUIRK OK (Şovcu σ×2 zar, Kopyacı kopyala + fallback, Panikçi telegraf σ×3)")
 	else:
 		print("TEST BOT QUIRK FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

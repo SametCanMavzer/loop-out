@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F7d RoundDirector testi: tur bazlı aktif set, determinizm, max-2-ardışık, seçim aralığı.
 ## (godot --headless -s res://tests/test_director.gd)
 
@@ -25,10 +25,10 @@ func _make(seed: int, interval: int = 100) -> RoundDirector:
 	d.setup(rng, _pool(), _tiers(), interval, 2)
 	return d
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	if _pool().has(null):
-		push_error("FAIL: davranış havuzu yüklenemedi."); print("TEST DIRECTOR FAILED"); quit(1); return true
+		push_error("FAIL: davranış havuzu yüklenemedi."); print("TEST DIRECTOR FAILED"); return 1
 
 	# --- 1) Round 1: yalnız normal seçilir ---
 	var d1 := _make(1)
@@ -81,5 +81,4 @@ func _process(_delta: float) -> bool:
 		print("TEST DIRECTOR OK (aktif set, determinizm, max-2-ardışık, aralık)")
 	else:
 		print("TEST DIRECTOR FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

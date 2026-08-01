@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F3a İp testi: crossing geometrisi (sarma + yön) ve zamanlama sınıflandırması.
 ## Rope autoload'a bağlı değil → lokal `crossed` sinyaline bağlanır, pencereler parametre.
 ## (godot --headless -s res://tests/test_rope.gd)
@@ -21,7 +21,7 @@ class FakeJumper extends RefCounted:
 
 var _events: Array = []  # [id, result, delta_ms]
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 
 	# --- 1) swept_past saf geometri (sarma + yön) ---
@@ -60,6 +60,24 @@ func _process(_delta: float) -> bool:
 	for c in cases:
 		if res.get(c[0]) != c[4]:
 			push_error("FAIL: id %d beklenen %d, gelen %s." % [c[0], c[4], str(res.get(c[0]))]); fail += 1
+
+	# --- 2b) PERFECT penceresinin SINIRI (§4.3). Denetimde açık kalmıştı: tüm PERFECT senaryoları
+	# delta=0 kullanıyordu, bu yüzden pencere sıfırlansa bile testler geçiyordu.
+	# TICK_MS ≈ 16.67 → 5 tick = 83ms (≤90 PERFECT), 6 tick = 100ms (>90 → GRAZE).
+	_events.clear()
+	rope.reset(0.0, 1.0)
+	var j_in := FakeJumper.new(20, mid); j_in.is_airborne = true; j_in.jump_input_tick = 100
+	rope.tick(105, 90, 160, [j_in])                    # delta 83ms → pencere İÇİ
+	rope.reset(0.0, 1.0)
+	var j_out := FakeJumper.new(21, mid); j_out.is_airborne = true; j_out.jump_input_tick = 100
+	rope.tick(106, 90, 160, [j_out])                   # delta 100ms → pencere DIŞI
+	var edge := {}
+	for e in _events:
+		edge[e[0]] = e[1]
+	if edge.get(20) != Rope.CrossResult.PERFECT:
+		push_error("FAIL: 83ms perfect penceresi içinde olmalı (gelen %s)." % str(edge.get(20))); fail += 1
+	if edge.get(21) != Rope.CrossResult.GRAZE:
+		push_error("FAIL: 100ms perfect penceresi dışında (GRAZE) olmalı (gelen %s)." % str(edge.get(21))); fail += 1
 
 	# --- 3) Sudden death (§4.5, graze bandı yok: graze_ms<=perfect_ms) → perfect değilse MISS ---
 	_events.clear()
@@ -104,5 +122,4 @@ func _process(_delta: float) -> bool:
 		print("TEST ROPE OK (crossing geo + sarma/yön, sınıflandırma, tur-graze, HIGH/E7)")
 	else:
 		print("TEST ROPE FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

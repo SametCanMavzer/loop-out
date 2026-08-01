@@ -374,6 +374,32 @@ func _advance_reassign() -> void:
 				src.reset_intent()   # konum oturdu → yeni geçiş için yeniden örnekle
 
 
+# --- Replay (§4.8): {master_seed, inputs} ile tur birebir yeniden oynatılır ---
+
+## Oyuncunun bu turdaki girdi kaydı ([[tick, action, pressed], ...]).
+func input_recording() -> Array:
+	var src = _jumpers.get(PLAYER_ID)
+	if src == null or not (src.input_source is HumanInput):
+		return []
+	return (src.input_source as HumanInput).recording()
+
+
+## Bu turun seed'i (replay dosyasının diğer yarısı).
+func seed_used() -> int:
+	return _seed
+
+
+## Turu KAYITTAN oynat: aynı seed + aynı girdi listesi → aynı tur (determinizm sözleşmesi).
+## prepare_round'dan SONRA, begin()'den ÖNCE çağrılır.
+func use_replay_input(commands: Array) -> void:
+	var pj: Jumper = _jumpers.get(PLAYER_ID)
+	if pj == null:
+		return
+	var replay := ReplayInput.new()
+	replay.setup(commands)
+	pj.setup(replay, Config.jumper_tuning())
+
+
 func jumper(id: int) -> Jumper:
 	return _jumpers.get(id)
 

@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F7c özel davranış testi: sudden_stop (zamanlı duruş), fake_slow (yavaş→snap),
 ## double_sweep (ikinci süpürme). (godot --headless -s res://tests/test_behavior_special.gd)
 
@@ -13,14 +13,14 @@ class FakeJumper extends RefCounted:
 
 var _cross_count: int = 0
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	var base := Rope.rpm_to_rad_per_sec(25.0)
 	var stop := load("res://data/behaviors/sudden_stop.tres") as RopeBehavior
 	var fake := load("res://data/behaviors/fake_slow.tres") as RopeBehavior
 	var dbl := load("res://data/behaviors/double_sweep.tres") as RopeBehavior
 	if stop == null or fake == null or dbl == null:
-		push_error("FAIL: özel .tres yüklenemedi."); print("TEST BEHAVIOR SPECIAL FAILED"); quit(1); return true
+		push_error("FAIL: özel .tres yüklenemedi."); print("TEST BEHAVIOR SPECIAL FAILED"); return 1
 
 	# --- 1) sudden_stop: yarım tur (~72 tick) durur, sonra base'e döner ---
 	var rope := Rope.new()
@@ -71,5 +71,4 @@ func _process(_delta: float) -> bool:
 		print("TEST BEHAVIOR SPECIAL OK (sudden_stop, fake_slow, double_sweep)")
 	else:
 		print("TEST BEHAVIOR SPECIAL FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

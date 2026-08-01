@@ -1,10 +1,10 @@
-extends SceneTree
+extends RefCounted
 ## F8a GameState/UIRouter testi: geçiş kuralları, sinyal, reset, ekran eşlemesi.
 ## (godot --headless -s res://tests/test_game_state.gd)
 
 var _events: Array = []
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	const S := GameState.State
 
@@ -46,7 +46,7 @@ func _process(_delta: float) -> bool:
 
 	# --- 4) UIRouter ekran eşlemesi (main.tscn üzerinde gerçek node'larla) ---
 	var main := (load("res://scenes/main.tscn") as PackedScene).instantiate()
-	root.add_child(main)
+	tree.root.add_child(main)
 	var router := main.get_node("UILayer") as UIRouter
 	if router == null:
 		push_error("FAIL: UILayer UIRouter olmalı."); fail += 1
@@ -72,5 +72,4 @@ func _process(_delta: float) -> bool:
 		print("TEST GAME STATE OK (FSM geçişleri, red, SPECTATE, reset, UIRouter ekranları)")
 	else:
 		print("TEST GAME STATE FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = &"sovcu"
 reaction_mean_ms = -150.0
-reaction_std_base_ms = 36
-std_round_slope = 1
+reaction_std_base_ms = 32
+std_round_slope = 1.5
 telegraph_fail_prob = 0.0
 quirk = 1
 exit_from = 0

@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = &"panikci"
 reaction_mean_ms = -150.0
-reaction_std_base_ms = 42
-std_round_slope = 1.2
+reaction_std_base_ms = 37
+std_round_slope = 1.7
 telegraph_fail_prob = 0.6
 quirk = 0
 exit_from = 0

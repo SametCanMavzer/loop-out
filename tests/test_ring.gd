@@ -1,8 +1,8 @@
-extends SceneTree
+extends RefCounted
 ## F5b Ring testi: daralan yarıçap + yeniden dizilim açıları (saf geometri).
 ## (godot --headless -s res://tests/test_ring.gd)
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	var eps := 0.0001
 
@@ -45,5 +45,4 @@ func _process(_delta: float) -> bool:
 		print("TEST RING OK (daralan yarıçap + yeniden dizilim açıları)")
 	else:
 		print("TEST RING FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

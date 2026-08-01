@@ -1,7 +1,7 @@
-extends SceneTree
+extends RefCounted
 ## F1 tam denetim: InputMap, sahne yükleme, proje ayarları. Tek seferlik kontrol aracı.
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 
 	# --- Proje ayarları (TDD §1, §4.1) ---
@@ -39,5 +39,4 @@ func _process(_delta: float) -> bool:
 		print("AUDIT F1 OK (proje ayarları, InputMap, sahne yükleme)")
 	else:
 		print("AUDIT F1 FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

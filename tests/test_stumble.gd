@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F5a Sendeleme/eleme testi: uyarı → af → eleme akışı + sudden death.
 ## (godot --headless -s res://tests/test_stumble.gd)
 
@@ -7,7 +7,7 @@ class FakeJumper extends RefCounted:
 	var has_warning: bool = false
 	var pardon_counter: int = 0
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	var judge := StumbleJudge.new()
 	const MISS := Rope.CrossResult.MISS
@@ -54,5 +54,4 @@ func _process(_delta: float) -> bool:
 		print("TEST STUMBLE OK (uyarı→af→eleme, sudden death, temiz geçiş)")
 	else:
 		print("TEST STUMBLE FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

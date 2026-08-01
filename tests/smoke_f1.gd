@@ -1,20 +1,20 @@
-extends SceneTree
+extends RefCounted
 ## F1 duman testi: autoload'lar yüklendi mi, Config balance.json'ı ayrıştırdı mı,
 ## Rng stream'leri deterministik mi? (godot --headless -s res://tests/smoke_f1.gd)
 ## Not: -s ile çalışan SceneTree'de autoload'lara global tanımlayıcı yerine
 ## get_node + dinamik çağrı ile erişilir (derleme anında global map hazır değil).
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	# İlk idle frame: autoload'ların _ready()'leri artık koştu.
 	var fail := 0
 
 	# 7 autoload erişilebilir mi?
 	for n in ["EventBus", "Config", "SaveGame", "Audio", "Analytics", "Ads", "Rng"]:
-		if root.get_node_or_null(NodePath(n)) == null:
+		if tree.root.get_node_or_null(NodePath(n)) == null:
 			push_error("FAIL: autoload eksik: %s" % n); fail += 1
 
-	var cfg := root.get_node_or_null(^"Config")
-	var rng := root.get_node_or_null(^"Rng")
+	var cfg := tree.root.get_node_or_null(^"Config")
+	var rng := tree.root.get_node_or_null(^"Rng")
 
 	# Config yüklendi + tipli erişim çalışıyor mu?
 	if cfg == null or not cfg.call("is_loaded"):
@@ -59,5 +59,4 @@ func _process(_delta: float) -> bool:
 		print("SMOKE F1 OK (7 autoload, Config, ms_to_ticks, Rng determinizm)")
 	else:
 		print("SMOKE F1 FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

@@ -1,8 +1,8 @@
-extends SceneTree
+extends RefCounted
 ## F9 ekonomi testi: jeton hesabı (GDD §6.2) + SaveGame (kayıt/okuma/migration/seri).
 ## (godot --headless -s res://tests/test_economy.gd)
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 
 	# --- Ödül matematiği (GDD §6.2: 50/25/10/5, +1 perfect, ×3 günlük ilk galibiyet) ---
@@ -23,9 +23,9 @@ func _process(_delta: float) -> bool:
 		push_error("FAIL: reklam çarpanı ×2 olmalı."); fail += 1
 
 	# --- SaveGame: jeton, karakter, kayıt/okuma döngüsü ---
-	var sg := root.get_node_or_null(^"SaveGame")
+	var sg := tree.root.get_node_or_null(^"SaveGame")
 	if sg == null:
-		push_error("FAIL: SaveGame autoload yok."); print("TEST ECONOMY FAILED"); quit(1); return true
+		push_error("FAIL: SaveGame autoload yok."); print("TEST ECONOMY FAILED"); return 1
 
 	sg.call("use_test_path", "user://save_test.json")   # gerçek oyuncu kaydını EZME
 	sg.data = sg.call("_defaults")
@@ -123,5 +123,4 @@ func _process(_delta: float) -> bool:
 		print("TEST ECONOMY OK (ödül, jeton/karakter, record_round, günlük, atomik kayıt, gacha 8/3/1)")
 	else:
 		print("TEST ECONOMY FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

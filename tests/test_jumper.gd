@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F4a Jumper testi: zıplama durum makinesi (normal/high/hold, duck toleransı, input buffer).
 ## (godot --headless -s res://tests/test_jumper.gd)
 
@@ -13,7 +13,7 @@ func _run(j: Jumper, last_tick: int) -> void:
 	for ct in range(0, last_tick + 1):
 		j.tick(ct)
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 
 	# --- 1) Normal zıplama: tick0 bas → 24'te havada, 25'te iner ---
@@ -88,5 +88,4 @@ func _process(_delta: float) -> bool:
 		print("TEST JUMPER OK (normal/high/hold geç-karar, duck toleransı, input buffer, ölü atlama)")
 	else:
 		print("TEST JUMPER FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

@@ -1,8 +1,8 @@
-extends SceneTree
+extends RefCounted
 ## F10 ses testi: prosedürel SFX üretimi, bus kurulumu, havuz round-robin, müzik pitch, mute.
 ## (godot --headless -s res://tests/test_audio.gd)
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 
 	# --- SfxGen: üretilen stream'ler geçerli mi ---
@@ -26,9 +26,9 @@ func _process(_delta: float) -> bool:
 		push_error("FAIL: müzik loop'u döngüsel/yeterli uzunlukta değil."); fail += 1
 
 	# --- Audio autoload: bus'lar + havuz + kütüphane ---
-	var audio := root.get_node_or_null(^"Audio")
+	var audio := tree.root.get_node_or_null(^"Audio")
 	if audio == null:
-		push_error("FAIL: Audio autoload yok."); print("TEST AUDIO FAILED"); quit(1); return true
+		push_error("FAIL: Audio autoload yok."); print("TEST AUDIO FAILED"); return 1
 	for bus in ["Music", "SFX"]:
 		if AudioServer.get_bus_index(bus) == -1:
 			push_error("FAIL: '%s' bus'ı kurulmadı (§8.1)." % bus); fail += 1
@@ -68,7 +68,7 @@ func _process(_delta: float) -> bool:
 
 	# --- Determinizm: ses HİÇBİR Rng stream'ini tüketmemeli (§4.8) ---
 	# Aksi hâlde "ses açık/kapalı" kozmetik akışı kaydırır (eleme fırlatma yönleri değişir).
-	var rng_node := root.get_node_or_null(^"Rng")
+	var rng_node := tree.root.get_node_or_null(^"Rng")
 	if rng_node == null:
 		push_error("FAIL: Rng autoload yok."); fail += 1
 	else:
@@ -95,5 +95,4 @@ func _process(_delta: float) -> bool:
 		print("TEST AUDIO OK (SFX üretimi, bus, havuz, müzik pitch, mute, Rng izolasyonu)")
 	else:
 		print("TEST AUDIO FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

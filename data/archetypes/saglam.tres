@@ -6,8 +6,8 @@
 script = ExtResource("1")
 id = &"saglam"
 reaction_mean_ms = -150.0
-reaction_std_base_ms = 26
-std_round_slope = 0.5
+reaction_std_base_ms = 23
+std_round_slope = 0.8
 telegraph_fail_prob = 0.0
 quirk = 0
 exit_from = 0

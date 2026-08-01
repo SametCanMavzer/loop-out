@@ -9,6 +9,8 @@ const MAX_TICKS := 12000
 const CHECKPOINTS := [5, 12, 19, 29]
 const TARGETS := {5: 13, 12: 9, 19: 6, 29: 3}
 
+var _durations: Array = []      # tur başına toplam tick (oturum süresi ölçümü)
+
 
 func _ready() -> void:
 	var sums := {}
@@ -17,6 +19,7 @@ func _ready() -> void:
 		sums[cp] = 0.0
 		counts[cp] = 0
 	var end_rounds: Array = []
+	_durations.clear()
 
 	for s in SEEDS:
 		var res := _run_one(1000 + s * 77)
@@ -34,7 +37,14 @@ func _ready() -> void:
 	var mean_end := 0.0
 	for e in end_rounds:
 		mean_end += e
-	print("tur sonu ortalaması: %.1f  (GDD: oyun 30+ turda biter, 60-120 sn)" % (mean_end / float(end_rounds.size())))
+	print("tur sonu ortalaması: %.1f  (GDD §4.2: oyun ~30 turda biter)" % (mean_end / float(end_rounds.size())))
+	# GDD §2 asıl kriteri: oturum 60-120 sn. Tick sayısı → gerçek süre.
+	var mean_ticks := 0.0
+	for t in _durations:
+		mean_ticks += t
+	var secs := (mean_ticks / float(maxi(_durations.size(), 1))) / float(TickClock.TICKS_PER_SECOND)
+	var verdict := "✓" if (secs >= 60.0 and secs <= 120.0) else "✗ (hedef 60-120)"
+	print("oturum süresi ortalaması: %.0f sn  %s" % [secs, verdict])
 	_check_restart()
 	get_tree().quit()
 
@@ -82,6 +92,7 @@ func _run_one(seed: int) -> Dictionary:
 			end_round = r
 			break
 		end_round = r
+	_durations.append(ctrl.clock.current_tick)
 	ctrl.queue_free()
 	queue.queue_free()
 	return {"alive_at": alive_at, "end_round": end_round}

@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F7a İp davranış/telegraf testi: telegraf geri sayımı, davranış uygulama, sinyal sırası.
 ## (godot --headless -s res://tests/test_behavior.gd)
 
@@ -13,7 +13,7 @@ func _make_behavior(id: StringName, mult: float, height: int = -1) -> RopeBehavi
 	b.params = p
 	return b
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	var base := Rope.rpm_to_rad_per_sec(25.0)
 
@@ -102,5 +102,4 @@ func _process(_delta: float) -> bool:
 		print("TEST BEHAVIOR OK (telegraf, uygulama, sinyaller, yön, .tres roster: speed_step/reverse/high_sweep/normal)")
 	else:
 		print("TEST BEHAVIOR FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

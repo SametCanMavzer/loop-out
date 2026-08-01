@@ -1,8 +1,8 @@
-extends SceneTree
+extends RefCounted
 ## F2 tick çekirdeği birim testi: TickClock determinizmi, Rng stream'leri, InputQueue
 ## tick damgalama + FIFO poll. (godot --headless -s res://tests/test_tick_core.gd)
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 
 	# --- TickClock: advance say + reset ---
@@ -27,7 +27,7 @@ func _process(_delta: float) -> bool:
 		push_error("FAIL: iki TickClock farklı tick üretti."); fail += 1
 
 	# --- Rng: aynı seed → aynı dizi; farklı stream → farklı dizi ---
-	var rng := root.get_node_or_null(^"Rng")
+	var rng := tree.root.get_node_or_null(^"Rng")
 	if rng == null:
 		push_error("FAIL: Rng autoload yok."); fail += 1
 	else:
@@ -87,5 +87,4 @@ func _process(_delta: float) -> bool:
 		print("TEST TICK CORE OK (TickClock determinizm, Rng stream, InputQueue damga+poll)")
 	else:
 		print("TEST TICK CORE FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail

@@ -33,8 +33,12 @@ Tek geliştirici: Samet. Sen bu projenin teknik lideri ve geliştiricisisin — 
 - Oyunu ÇALIŞTIRAMAZSIN ve GÖREMEZSİN. Görsel/his gerektiren her doğrulamayı görevin sonunda
   `[EDİTÖR KONTROLÜ]: <ne yapılacak, ne görülmeli>` bloğuyla Samet'e devret. Onayı gelmeden
   o görevi STATE.md'de tamamlandı işaretleme.
-- Mantık testleri için çalıştırabildiğin tek şey: `godot --headless` (GUT testleri + sim script).
-  Test komutu: `godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit`
+- Mantık testleri için çalıştırabildiğin tek şey: `godot --headless` (test koşucusu + sim sahneleri).
+  **Test komutu:** `godot --headless scenes/dev/run_tests.tscn` (tüm birim testleri tek süreçte, ~2 sn)
+  Tek test: `godot --headless scenes/dev/run_tests.tscn -- test_rope`
+  Tam paket (birim + balans/denetim/replay simülasyonları, ~17 sn): `powershell -File tests\run_all.ps1`
+  Test sözleşmesi: her test `extends RefCounted` + `func run(tree: SceneTree) -> int` (hata sayısı döndürür).
+  GUT kullanılmıyor — aynı hızı bağımsız koşucu sağlıyor, ek bağımlılık yok (karar: F11).
 - `.tscn` dosyalarını metin olarak yazabilirsin ama MİNİMAL tut: sahnede yalnız iskelet node'lar,
   dinamik her şey (16 jumper dizilimi, UI durumları) koddan kurulur. `.godot/` klasörüne asla dokunma.
 - GDScript 2.x sözdizimi: `@export`, `@onready`, typed signals, `class_name`. Godot 3 sözdizimi yazma.

@@ -1,4 +1,4 @@
-extends SceneTree
+extends RefCounted
 ## F7f Dinamik dram testi. (godot --headless -s res://tests/test_drama.gd)
 
 func _bots() -> Array:
@@ -10,7 +10,7 @@ func _bots() -> Array:
 		{"id": &"saglam", "sigma": 50.0, "ref": 5},
 	]
 
-func _process(_delta: float) -> bool:
+func run(tree: SceneTree) -> int:
 	var fail := 0
 	var drama := DramaDirector.new(); drama.setup(2)
 	var rng := RandomNumberGenerator.new(); rng.seed = 3
@@ -59,8 +59,7 @@ func _process(_delta: float) -> bool:
 		print("TEST DRAMA OK (kurtarma koşulları/determinizm, final aday, σ override)")
 	else:
 		print("TEST DRAMA FAILED: %d hata" % fail)
-	quit(fail)
-	return true
+	return fail
 
 class FakeRope extends RefCounted:
 	var angle: float = 0.0
