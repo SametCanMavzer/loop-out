@@ -5,6 +5,7 @@ class_name ResultsScreen extends Control
 signal restart_pressed()
 signal characters_pressed()
 signal double_pressed()      # ödüllü reklam: jeton ×2 (GDD §6.2)
+signal settings_pressed()
 
 @onready var _title: Label = $Panel/Title
 @onready var _detail: Label = $Panel/Detail
@@ -21,6 +22,7 @@ func _ready() -> void:
 	_double.pressed.connect(func() -> void:
 		_double.disabled = true
 		double_pressed.emit())
+	($Panel/SettingsButton as Button).pressed.connect(func() -> void: settings_pressed.emit())
 
 
 ## Ödüllü reklam butonu yalnız servis destekliyorsa görünür (§12.3: NullAds → gizli).
@@ -32,10 +34,10 @@ func set_double_available(on: bool) -> void:
 ## earned: bu turda kazanılan jeton, total_coins: kasadaki toplam (GDD §6.2).
 func show_result(placement: int, total: int, round_no: int,
 		earned: int = 0, total_coins: int = 0, perfect_count: int = 0, daily_bonus: bool = false) -> void:
-	if placement <= 1:
-		_title.text = "KAZANDIN!"
-	else:
-		_title.text = "%d. SIRA" % placement
-	_detail.text = "%d kişiden %d.  ·  tur %d  ·  %d perfect" % [total, placement, round_no, perfect_count]
-	var bonus := "  (günlük ilk galibiyet ×3)" if daily_bonus else ""
-	_coins.text = "+%d jeton%s     toplam: %d" % [earned, bonus, total_coins]
+	_title.text = tr("UI_WIN") if placement <= 1 else (tr("UI_PLACE") % placement)
+	_detail.text = tr("UI_RESULT_DETAIL") % [total, placement, round_no, perfect_count]
+	var bonus := tr("UI_DAILY_BONUS") if daily_bonus else ""
+	_coins.text = tr("UI_COINS_EARNED") % [earned, bonus, total_coins]
+	_button.text = tr("UI_RESTART")
+	($Panel/CharactersButton as Button).text = tr("UI_CHARACTERS")
+	_double.text = tr("UI_WATCH_AD")

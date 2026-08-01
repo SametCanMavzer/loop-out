@@ -15,7 +15,6 @@ const TELEGRAPH_FADE := 0.5
 @onready var _behavior: Label = $BehaviorLabel
 @onready var _warn_frame: Control = $WarnFrame
 @onready var _countdown: Label = $Countdown
-@onready var _orientation_button: Button = $OrientationButton   # GEÇİCİ (dev): oryantasyon testi
 
 var _player_id := 0
 var _total := 16
@@ -37,13 +36,6 @@ func _ready() -> void:
 	_behavior.modulate.a = 0.0
 	_warn_frame.visible = false
 	_countdown.visible = false
-	# GEÇİCİ (dev, F14'te kalkar): pencereyi yatay/dikey çevirip §7.2 preset geçişini test et.
-	_orientation_button.pressed.connect(_toggle_orientation)
-
-
-func _toggle_orientation() -> void:
-	var s := DisplayServer.window_get_size()
-	DisplayServer.window_set_size(Vector2i(s.y, s.x))
 
 
 ## Tur başında çağrılır (Main): sayaçları sıfırla.
@@ -56,12 +48,13 @@ func reset_for_round(total: int) -> void:
 	_warn_frame.visible = false
 	_tap_hint.visible = false      # geri sayım bitince açılır
 	_combo.text = ""
-	_alive.text = "%d/%d" % [total, total]
-	_round.text = "TUR 1"
+	_tap_hint.text = tr("UI_TAP")
+	_alive.text = tr("UI_ALIVE") % [total, total]
+	_round.text = tr("UI_ROUND") % 1
 
 
 func set_round(round_no: int) -> void:
-	_round.text = "TUR %d" % round_no
+	_round.text = tr("UI_ROUND") % round_no
 
 
 ## Geri sayım göstergesi (GDD §2.3: 1 sn). Bu süre boyunca ip DÖNMEZ, oyuncu hazırlanır.
@@ -78,7 +71,7 @@ func hide_countdown() -> void:
 
 
 func _on_ring_shrunk(alive_count: int) -> void:
-	_alive.text = "%d/%d" % [alive_count, _total]
+	_alive.text = tr("UI_ALIVE") % [alive_count, _total]
 	# Eleme anında pulse (§7.3) — kozmetik tween, determinizm dışı.
 	var tw := create_tween()
 	_alive.scale = Vector2(1.35, 1.35)
@@ -96,17 +89,17 @@ func _on_crossed(jumper_id: int, result: int, delta_ms: float) -> void:
 	match result:
 		Rope.CrossResult.PERFECT:
 			_combo_count += 1
-			_feedback.text = "PERFECT (%d ms)" % int(delta_ms)
+			_feedback.text = tr("UI_PERFECT") % int(delta_ms)
 			_feedback.modulate = Color(0.3, 1.0, 0.4)
 		Rope.CrossResult.GRAZE:
 			_combo_count = 0
-			_feedback.text = "GRAZE"
+			_feedback.text = tr("UI_GRAZE")
 			_feedback.modulate = Color(1.0, 0.9, 0.3)
 		Rope.CrossResult.MISS:
 			_combo_count = 0
-			_feedback.text = "MISS"
+			_feedback.text = tr("UI_MISS")
 			_feedback.modulate = Color(1.0, 0.35, 0.3)
-	_combo.text = ("PERFECT ×%d" % _combo_count) if _combo_count > 1 else ""
+	_combo.text = (tr("UI_COMBO") % _combo_count) if _combo_count > 1 else ""
 
 
 ## ⚠ ekran kenarı çerçevesi (§7.3) — yalnız oyuncunun durumu gösterilir.
@@ -125,14 +118,19 @@ func _on_eliminated(jumper_id: int, _cause: int) -> void:
 		_combo.text = ""
 
 
+## Davranış adı çeviriden gelir ve karşı hamleyi de söyler ("YÜKSEK — EĞİL!").
+func _behavior_text(id: StringName) -> String:
+	return tr("BEH_" + String(id).to_upper())
+
+
 func _on_telegraphed(id: StringName) -> void:
-	_behavior.text = "⚠ " + String(id).to_upper()
+	_behavior.text = "⚠ " + _behavior_text(id)
 	_behavior.modulate = Color(1.0, 0.8, 0.2)
 	_tel_flash = 1.6
 
 
 func _on_behavior_started(id: StringName) -> void:
-	_behavior.text = String(id).to_upper()
+	_behavior.text = _behavior_text(id)
 	_behavior.modulate = Color(0.85, 0.9, 1.0)
 	_tel_flash = 1.1
 

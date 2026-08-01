@@ -14,6 +14,7 @@ var state := GameState.new()
 @onready var _hud: HUD = $UILayer/HUD
 @onready var _results: ResultsScreen = $UILayer/Results
 @onready var _characters: CharactersScreen = $UILayer/Characters
+@onready var _settings: SettingsPopup = $UILayer/SettingsPopup
 
 var _arena: ArenaView
 var _input_queue := InputQueue.new()
@@ -27,6 +28,9 @@ var _last_daily := false
 
 
 func _ready() -> void:
+	# Kayıtlı dil ve ekran yönü daha ilk kare çizilmeden uygulanır (GDD §9).
+	TranslationServer.set_locale(String(SaveGame.setting("lang", "en")))
+	SettingsPopup.apply_orientation(String(SaveGame.setting("orientation", "portrait")) == "portrait")
 	_input_queue.name = "InputQueue"
 	add_child(_input_queue)
 
@@ -49,6 +53,13 @@ func _ready() -> void:
 		_router.show_overlay("Characters", true))
 	_characters.closed.connect(func() -> void: _router.show_overlay("Characters", false))
 	_characters.equipped_changed.connect(func(_id: String) -> void: _arena.apply_player_skin())
+	# Ayarlar (GDD §9) — sonuç ekranındaki ⚙ düğmesinden, overlay olarak.
+	_results.settings_pressed.connect(func() -> void:
+		_settings.refresh()
+		_router.show_overlay("SettingsPopup", true))
+	_settings.closed.connect(func() -> void:
+		_router.show_overlay("SettingsPopup", false)
+		_refresh_localized_ui())
 	_arena.controller.round_advanced.connect(func(r: int) -> void: _hud.set_round(r))
 	EventBus.round_ended.connect(_on_round_ended)
 	EventBus.player_eliminated.connect(_on_player_eliminated)
@@ -70,7 +81,7 @@ func start_new_round() -> void:
 	_arena.controller.prepare_round(seed)
 	_arena.rebuild()
 	_hud.reset_for_round(_arena.controller.alive_ids.size())
-	_hud.show_countdown("HAZIR?")
+	_hud.show_countdown(tr("UI_READY"))
 	await get_tree().create_timer(COUNTDOWN_S).timeout   # UI beklemesi (gameplay tick'i değil)
 	if state.current == GameState.State.COUNTDOWN:
 		_hud.hide_countdown()
@@ -134,6 +145,13 @@ func _on_double_reward() -> void:
 			_last_earned * 2, SaveGame.coins(), _arena.controller.perfect_total, _last_daily)
 		_results.set_double_available(false)
 		Audio.play(&"coin"))
+
+
+## Dil değişince ekrandaki metinleri tazele (ekranlar açılışta zaten çeviriyor).
+func _refresh_localized_ui() -> void:
+	if state.current == GameState.State.RESULTS:
+		_results.show_result(_last_place, _last_total, _arena.controller.round_no,
+			_last_earned, SaveGame.coins(), _arena.controller.perfect_total, _last_daily)
 
 
 func restart() -> void:

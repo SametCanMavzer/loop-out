@@ -5,7 +5,7 @@ class_name CharactersScreen extends Control
 signal closed()
 signal equipped_changed(id: String)
 
-const RARITY_LABEL := ["Yaygın", "Nadir", "Efsanevi"]
+const RARITY_KEYS := ["UI_RARITY_COMMON", "UI_RARITY_RARE", "UI_RARITY_LEGENDARY"]
 const RARITY_COLOR := [Color(0.75, 0.78, 0.82), Color(0.45, 0.75, 1.0), Color(1.0, 0.82, 0.3)]
 
 @onready var _grid: GridContainer = $Panel/Scroll/Grid
@@ -34,10 +34,12 @@ func _ready() -> void:
 	_toast.text = ""
 
 
-## Ekran açılırken çağrılır: ızgarayı ve jeton sayacını tazele.
+## Ekran açılırken çağrılır: ızgarayı ve jeton sayacını tazele. Metinler her açılışta
+## yeniden çevrilir → dil değişince ekranı kapatıp açmak yeterli.
 func refresh() -> void:
-	_coins.text = "%d jeton" % SaveGame.coins()
-	_draw_button.text = "ÇEKİLİŞ (%d)" % _cost
+	($Panel/Header/Title as Label).text = tr("UI_CHARACTERS")
+	_coins.text = tr("UI_COINS") % SaveGame.coins()
+	_draw_button.text = tr("UI_DRAW") % _cost
 	_draw_button.disabled = SaveGame.coins() < _cost
 	for c in _grid.get_children():
 		c.queue_free()
@@ -53,9 +55,9 @@ func _make_card(ch: CharacterData) -> Control:
 	card.focus_mode = Control.FOCUS_NONE
 	card.disabled = not owned
 	card.text = "%s\n%s%s" % [
-		(ch.display_name if owned else "???"),
-		RARITY_LABEL[ch.rarity],
-		("\n★ SEÇİLİ" if is_equipped else "")]
+		(ch.display_name if owned else tr("UI_LOCKED")),
+		tr(RARITY_KEYS[ch.rarity]),
+		("\n" + tr("UI_SELECTED") if is_equipped else "")]
 	card.modulate = ch.color if owned else Color(0.35, 0.35, 0.38)
 	card.add_theme_color_override("font_color", RARITY_COLOR[ch.rarity])
 	if owned and not is_equipped:
@@ -69,20 +71,20 @@ func _make_card(ch: CharacterData) -> Control:
 
 func _on_draw() -> void:
 	if not SaveGame.spend_coins(_cost):
-		_show_toast("Yetersiz jeton")
+		_show_toast(tr("UI_NOT_ENOUGH_COINS"))
 		return
 	var owned: Array = (SaveGame.data.get("characters_owned", []) as Array).duplicate()
 	var result := _gacha.draw(owned)
 	if result == null:
 		SaveGame.add_coins(_cost)     # havuz boş — jetonu iade et
-		_show_toast("Havuz boş")
+		_show_toast(tr("UI_POOL_EMPTY"))
 		return
 	var is_new := not owned.has(String(result.id))
 	if is_new:
 		SaveGame.add_character(String(result.id))
 	SaveGame.save_game()
-	_show_toast("%s %s! (%s)" % [
-		result.display_name, ("kazanıldı" if is_new else "tekrar geldi"), RARITY_LABEL[result.rarity]])
+	var key := "UI_CHAR_UNLOCKED" if is_new else "UI_CHAR_DUPLICATE"
+	_show_toast(tr(key) % [result.display_name, tr(RARITY_KEYS[result.rarity])])
 	refresh()
 
 

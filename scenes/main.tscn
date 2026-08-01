@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bipatlamain01"]
+[gd_scene load_steps=7 format=3 uid="uid://bipatlamain01"]
 
 ; Kök sahne — tek sahne mimarisi (TDD §7.1). Bu sahne HİÇ değişmez; restart = state reset.
 ; Ekranlar hep ağaçta durur, yalnız `visible` toggle edilir (UIRouter). İçerikleri koddan
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bipatlahud01" path="res://scenes/ui/hud.tscn" id="3"]
 [ext_resource type="PackedScene" uid="uid://bipatlaresults01" path="res://scenes/ui/results.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://bipatlachars01" path="res://scenes/ui/characters.tscn" id="5"]
+[ext_resource type="PackedScene" uid="uid://bipatlasettings1" path="res://scenes/ui/settings.tscn" id="6"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("2")
@@ -33,12 +34,8 @@ visible = false
 [node name="Characters" parent="UILayer" instance=ExtResource("5")]
 visible = false
 
-[node name="SettingsPopup" type="Control" parent="UILayer"]
+[node name="SettingsPopup" parent="UILayer" instance=ExtResource("6")]
 visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
 
 [node name="FadeLayer" type="CanvasLayer" parent="."]
 layer = 10

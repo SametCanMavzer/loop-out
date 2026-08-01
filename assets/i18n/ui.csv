@@ -1,0 +1,47 @@
+keys,en,tr
+UI_READY,READY?,HAZIR?
+UI_TAP,TAP,DOKUN
+UI_ROUND,ROUND %d,TUR %d
+UI_ALIVE,%d/%d,%d/%d
+UI_PERFECT,PERFECT (%d ms),MÜKEMMEL (%d ms)
+UI_GRAZE,GRAZE,SIYIRDI
+UI_MISS,MISS,IŞKALADI
+UI_COMBO,PERFECT ×%d,MÜKEMMEL ×%d
+UI_WIN,YOU WIN!,KAZANDIN!
+UI_PLACE,%d. PLACE,%d. SIRA
+UI_RESULT_DETAIL,%d players  ·  %d. place  ·  round %d  ·  %d perfect,%d kişiden %d.  ·  tur %d  ·  %d mükemmel
+UI_COINS_EARNED,+%d coins%s     total: %d,+%d jeton%s     toplam: %d
+UI_DAILY_BONUS,  (daily first win ×3),  (günlük ilk galibiyet ×3)
+UI_RESTART,PLAY AGAIN,TEKRAR OYNA
+UI_CHARACTERS,CHARACTERS,KARAKTERLER
+UI_WATCH_AD,▶ WATCH AD — COINS ×2,▶ REKLAM İZLE — JETON ×2
+UI_DRAW,DRAW (%d),ÇEKİLİŞ (%d)
+UI_COINS,%d coins,%d jeton
+UI_RARITY_COMMON,Common,Yaygın
+UI_RARITY_RARE,Rare,Nadir
+UI_RARITY_LEGENDARY,Legendary,Efsanevi
+UI_SELECTED,★ SELECTED,★ SEÇİLİ
+UI_LOCKED,???,???
+UI_CHAR_UNLOCKED,%s unlocked! (%s),%s kazanıldı! (%s)
+UI_CHAR_DUPLICATE,%s again! (%s),%s tekrar geldi! (%s)
+UI_NOT_ENOUGH_COINS,Not enough coins,Yetersiz jeton
+UI_POOL_EMPTY,Pool is empty,Havuz boş
+UI_SETTINGS,SETTINGS,AYARLAR
+UI_SOUND,Sound,Ses
+UI_VIBRATION,Vibration,Titreşim
+UI_LANGUAGE,Language,Dil
+UI_ORIENTATION,Screen,Ekran yönü
+UI_PORTRAIT,Portrait,Dikey
+UI_LANDSCAPE,Landscape,Yatay
+UI_ON,On,Açık
+UI_OFF,Off,Kapalı
+UI_CLOSE,Close,Kapat
+UI_ABOUT_OPPONENTS,Opponents are AI — not real players.,Rakipler yapay zekâdır — gerçek oyuncu değildir.
+UI_WEB_SAVE_NOTE,On the web your progress is stored in this browser only.,Web sürümünde ilerlemen yalnız bu tarayıcıda saklanır.
+BEH_NORMAL,NORMAL,NORMAL
+BEH_SPEED_STEP,FASTER,HIZLANIYOR
+BEH_SUDDEN_STOP,SUDDEN STOP,ANİ DURUŞ
+BEH_REVERSE,REVERSE,TERS DÖNÜŞ
+BEH_HIGH_SWEEP,HIGH — DUCK!,YÜKSEK — EĞİL!
+BEH_DOUBLE_SWEEP,DOUBLE — HIGH JUMP!,ÇİFT TUR — YÜKSEK ZIPLA!
+BEH_FAKE_SLOW,FAKE SLOWDOWN,SAHTE YAVAŞLAMA

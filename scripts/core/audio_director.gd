@@ -50,6 +50,13 @@ func _on_crossed(id: int, result: int, _delta_ms: float) -> void:
 func _on_stumbled(id: int) -> void:
 	if id == _player_id:
 		Audio.play(&"stumble")
+		_vibrate(30)
+
+
+## Dokunsal geri bildirim (GDD §9 "titreşim" ayarı). Yalnız mobilde ve ayar açıkken.
+func _vibrate(ms: int) -> void:
+	if OS.has_feature("mobile") and bool(SaveGame.setting("vibration", true)):
+		Input.vibrate_handheld(ms)
 
 
 func _on_pardoned(id: int) -> void:
@@ -70,6 +77,7 @@ func _on_player_eliminated(_alive: int) -> void:
 	if _slowmo_active:
 		return
 	_slowmo_active = true
+	_vibrate(120)                                # eleme: daha uzun darbe
 	Engine.time_scale = SLOWMO_SCALE
 	# ignore_time_scale = true → gerçek zamanda 0.4 sn
 	await get_tree().create_timer(SLOWMO_REAL_S, true, false, true).timeout
