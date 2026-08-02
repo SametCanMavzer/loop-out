@@ -10,6 +10,7 @@ const ELIM_LIFE := 1.6
 
 @onready var controller: ArenaController = $ArenaController
 @onready var _rope_viz: RopeVisual = $RopeSpinner
+@onready var _camera_rig: CameraRig = $CameraRig
 
 var _views := {}        # id -> {node, cap, mat, viz_y, viz_vy, last_jump}
 var _flying: Array = []
@@ -19,10 +20,12 @@ var _r_max := 9.0
 func _ready() -> void:
 	_r_max = float(Config.ring.get("r_max", 9.0))
 	_rope_viz.bind(controller.rope)
-	_rope_viz.scale = Vector3(_r_max / 6.0, 1.0, 1.0)   # çubuk (6 birim) r_max'a ulaşsın
+	_rope_viz.set_radius(_r_max)      # ip gerçek yarıçapa göre kurulur (ölçek YOK: kesiti bozardı)
 	EventBus.jumper_eliminated.connect(_on_eliminated)
 	EventBus.jumper_stumbled.connect(_refresh_color)
 	EventBus.jumper_pardoned.connect(_refresh_color)
+	# Oyuncu elenince kamera darbesi (GDD §2.2) — slow-motion'la aynı anda oynar.
+	EventBus.player_eliminated.connect(func(_alive: int) -> void: _camera_rig.punch_zoom())
 
 
 ## Tur başında (controller.start_round sonrası) görsel temsilleri kur.

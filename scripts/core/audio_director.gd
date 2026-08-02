@@ -89,13 +89,5 @@ func _on_round_ended(_placement: int, _coins: int) -> void:
 	Audio.play(&"coin")
 
 
-## Sesi aç/kapa — M tuşu (ayarlar ekranı F13'te gelene kadar geçici erişim, §8.1 Master mute).
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
-		var on := not Audio.is_enabled()
-		Audio.set_enabled(on)
-		SaveGame.set_setting("sound", on)
-
-
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0                      # sahne kapanırken zaman ölçeğini bırakma

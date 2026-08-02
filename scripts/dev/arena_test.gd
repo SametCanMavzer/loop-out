@@ -54,7 +54,7 @@ func _ready() -> void:
 	_rope.reset(0.0, Rope.rpm_to_rad_per_sec(float(Config.rope.get("start_rpm", 25))))
 	_rope.max_abs_speed = Rope.rpm_to_rad_per_sec(float(Config.rope.get("max_rpm", 60)))  # §5.1 tavan
 	_rope_viz.bind(_rope)
-	_rope_viz.scale = Vector3(_r_max / 6.0, 1.0, 1.0)   # rope çubuğu (6 birim) r_max'a ulaşsın
+	_rope_viz.set_radius(_r_max)
 	_rope.crossed.connect(_on_crossed)
 	_rope.behavior_telegraphed.connect(_on_telegraphed)
 	_rope.behavior_started.connect(_on_behavior_started)

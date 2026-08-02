@@ -6,6 +6,9 @@ class_name HUD extends Control
 
 const FEEDBACK_FADE := 1.2
 const TELEGRAPH_FADE := 0.5
+const SCREEN_FLASH_FADE := 4.0     # tam ekran flaş sönüm hızı (1/sn)
+const FLASH_ELIM := Color(1.0, 0.2, 0.15)     # oyuncu elendi
+const FLASH_STUMBLE := Color(1.0, 0.75, 0.1)  # oyuncu sendeledi (son şans)
 
 @onready var _alive: Label = $Top/AliveLabel
 @onready var _round: Label = $Top/RoundLabel
@@ -15,10 +18,12 @@ const TELEGRAPH_FADE := 0.5
 @onready var _behavior: Label = $BehaviorLabel
 @onready var _warn_frame: Control = $WarnFrame
 @onready var _countdown: Label = $Countdown
+@onready var _screen_flash: ColorRect = $Flash
 
 var _player_id := 0
 var _total := 16
 var _flash := 0.0
+var _flash_a := 0.0
 var _tel_flash := 0.0
 var _combo_count := 0
 var _tapped := false
@@ -27,7 +32,10 @@ var _tapped := false
 func _ready() -> void:
 	EventBus.ring_shrunk.connect(_on_ring_shrunk)
 	EventBus.rope_crossed.connect(_on_crossed)
-	EventBus.jumper_stumbled.connect(func(id: int) -> void: _set_warn_for(id, true))
+	EventBus.jumper_stumbled.connect(func(id: int) -> void:
+		_set_warn_for(id, true)
+		if id == _player_id:
+			flash(FLASH_STUMBLE, 0.15))
 	EventBus.jumper_pardoned.connect(func(id: int) -> void: _set_warn_for(id, false))
 	EventBus.jumper_eliminated.connect(_on_eliminated)
 	EventBus.behavior_telegraphed.connect(_on_telegraphed)
@@ -36,6 +44,7 @@ func _ready() -> void:
 	_behavior.modulate.a = 0.0
 	_warn_frame.visible = false
 	_countdown.visible = false
+	_screen_flash.color.a = 0.0
 
 
 ## Tur başında çağrılır (Main): sayaçları sıfırla.
@@ -45,6 +54,8 @@ func reset_for_round(total: int) -> void:
 	_tapped = false
 	_flash = 0.0
 	_tel_flash = 0.0
+	_flash_a = 0.0
+	_screen_flash.color.a = 0.0
 	_warn_frame.visible = false
 	_tap_hint.visible = false      # geri sayım bitince açılır
 	_combo.text = ""
@@ -116,6 +127,13 @@ func _on_eliminated(jumper_id: int, _cause: int) -> void:
 	if jumper_id == _player_id:
 		_warn_frame.visible = false
 		_combo.text = ""
+		flash(FLASH_ELIM, 0.26)   # tüm ekranı boyar — dozu düşük tut (test: 0.5 sahneyi pembeye çeviriyordu)
+
+
+## Tam ekran renk flaşı (GDD §7: sarsıntı yerine renk). Alfa _process'te söner.
+func flash(color: Color, alpha: float) -> void:
+	_screen_flash.color = Color(color.r, color.g, color.b, alpha)
+	_flash_a = alpha
 
 
 ## Davranış adı çeviriden gelir ve karşı hamleyi de söyler ("YÜKSEK — EĞİL!").
@@ -142,3 +160,6 @@ func _process(dt: float) -> void:
 	if _tel_flash > 0.0:
 		_tel_flash = maxf(0.0, _tel_flash - dt * TELEGRAPH_FADE)
 		_behavior.modulate.a = minf(_tel_flash, 1.0)
+	if _flash_a > 0.0:
+		_flash_a = maxf(0.0, _flash_a - dt * SCREEN_FLASH_FADE)
+		_screen_flash.color.a = _flash_a

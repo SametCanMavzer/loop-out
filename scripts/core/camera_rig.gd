@@ -8,11 +8,19 @@ class_name CameraRig extends Node3D
 const PORTRAIT := {"pos": Vector3(0.0, 15.0, 18.0), "pitch": -39.0, "fov": 64.0}
 const LANDSCAPE := {"pos": Vector3(0.0, 12.0, 15.0), "pitch": -37.0, "fov": 52.0}
 const TWEEN_S := 0.35
+## Eleme zoom'u (GDD §2.2): hızlı içeri, yavaş dışarı; toplam 0.4 sn GERÇEK zaman
+## (slow-motion sırasında oynadığı için time_scale'i yok sayar).
+const PUNCH_FOV := 7.0
+const PUNCH_IN_S := 0.10
+const PUNCH_OUT_S := 0.30
 
 @onready var _cam: Camera3D = $Camera3D
 
 var _is_portrait := true
 var _tween: Tween
+var _punch_tween: Tween
+var _base_fov := 64.0     # oryantasyon preset'inin fov'u
+var _punch := 0.0         # zoom sapması; efektif fov = _base_fov - _punch
 
 
 func _ready() -> void:
@@ -43,12 +51,34 @@ func _apply(portrait: bool, instant: bool) -> void:
 	if instant:
 		_cam.position = pos
 		_cam.rotation.x = pitch
-		_cam.fov = fov
+		_set_base_fov(fov)
 		return
 	_tween = create_tween().set_parallel(true)   # kozmetik geçiş; gameplay'i etkilemez
 	_tween.tween_property(_cam, "position", pos, TWEEN_S).set_trans(Tween.TRANS_SINE)
 	_tween.tween_property(_cam, "rotation:x", pitch, TWEEN_S).set_trans(Tween.TRANS_SINE)
-	_tween.tween_property(_cam, "fov", fov, TWEEN_S).set_trans(Tween.TRANS_SINE)
+	# fov doğrudan değil _base_fov üzerinden: eleme zoom'u aynı anda çalışıyorsa ezişmesinler.
+	_tween.tween_method(_set_base_fov, _base_fov, fov, TWEEN_S).set_trans(Tween.TRANS_SINE)
+
+
+func _set_base_fov(v: float) -> void:
+	_base_fov = v
+	_cam.fov = _base_fov - _punch
+
+
+func _set_punch(v: float) -> void:
+	_punch = v
+	_cam.fov = _base_fov - _punch
+
+
+## Eleme darbesi (GDD §2.2): kısa zoom. Kamera SARSILMAZ — GDD §7 kuralı, sarsıntı yerine
+## HUD renk flaşı kullanılır.
+func punch_zoom() -> void:
+	if _punch_tween != null and _punch_tween.is_valid():
+		_punch_tween.kill()
+	_punch_tween = create_tween().set_ignore_time_scale(true)
+	_punch_tween.tween_method(_set_punch, _punch, PUNCH_FOV, PUNCH_IN_S).set_trans(Tween.TRANS_QUAD)
+	_punch_tween.tween_method(_set_punch, PUNCH_FOV, 0.0, PUNCH_OUT_S) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 func is_portrait() -> bool:

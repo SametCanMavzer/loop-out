@@ -10,7 +10,7 @@ signal settings_pressed()
 @onready var _title: Label = $Panel/Title
 @onready var _detail: Label = $Panel/Detail
 @onready var _coins: Label = $Panel/Coins
-@onready var _button: Button = $Panel/RestartButton
+@onready var _button: Button = $Panel/Buttons/RestartButton
 
 
 @onready var _double: Button = $Panel/DoubleButton
@@ -18,11 +18,11 @@ signal settings_pressed()
 
 func _ready() -> void:
 	_button.pressed.connect(func() -> void: restart_pressed.emit())
-	($Panel/CharactersButton as Button).pressed.connect(func() -> void: characters_pressed.emit())
+	($Panel/Buttons/CharactersButton as Button).pressed.connect(func() -> void: characters_pressed.emit())
 	_double.pressed.connect(func() -> void:
 		_double.disabled = true
 		double_pressed.emit())
-	($Panel/SettingsButton as Button).pressed.connect(func() -> void: settings_pressed.emit())
+	($Panel/Buttons/SettingsButton as Button).pressed.connect(func() -> void: settings_pressed.emit())
 
 
 ## Ödüllü reklam butonu yalnız servis destekliyorsa görünür (§12.3: NullAds → gizli).
@@ -39,5 +39,5 @@ func show_result(placement: int, total: int, round_no: int,
 	var bonus := tr("UI_DAILY_BONUS") if daily_bonus else ""
 	_coins.text = tr("UI_COINS_EARNED") % [earned, bonus, total_coins]
 	_button.text = tr("UI_RESTART")
-	($Panel/CharactersButton as Button).text = tr("UI_CHARACTERS")
+	($Panel/Buttons/CharactersButton as Button).text = tr("UI_CHARACTERS")
 	_double.text = tr("UI_WATCH_AD")

@@ -1,14 +1,13 @@
 [gd_scene load_steps=6 format=3 uid="uid://bipatlaarena01"]
 
 ; Arena — görsel iskelet (ArenaView) + mantık (ArenaController). Jumper temsilleri koddan.
+; Zemin/dekor Schoolyard içinde koddan kurulur (CLAUDE.md: .tscn minimal).
 
 [ext_resource type="Script" path="res://scripts/core/arena_view.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/core/arena_controller.gd" id="2"]
 [ext_resource type="PackedScene" uid="uid://bipatlarope01" path="res://scenes/arena/rope_spinner.tscn" id="3"]
 [ext_resource type="Script" path="res://scripts/core/camera_rig.gd" id="4"]
-
-[sub_resource type="PlaneMesh" id="Ground"]
-size = Vector2(28, 28)
+[ext_resource type="Script" path="res://scripts/core/schoolyard.gd" id="5"]
 
 [node name="Arena" type="Node3D"]
 script = ExtResource("1")
@@ -18,8 +17,8 @@ script = ExtResource("2")
 
 [node name="RopeSpinner" parent="." instance=ExtResource("3")]
 
-[node name="Ground" type="MeshInstance3D" parent="."]
-mesh = SubResource("Ground")
+[node name="Schoolyard" type="Node3D" parent="."]
+script = ExtResource("5")
 
 [node name="CameraRig" type="Node3D" parent="."]
 script = ExtResource("4")

@@ -85,19 +85,6 @@ offset_bottom = -12.0
 theme_override_font_sizes/font_size = 30
 text = "ÇEKİLİŞ (100)"
 
-[node name="DevCoins" type="Button" parent="Panel"]
-focus_mode = 0
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -190.0
-offset_top = -66.0
-offset_bottom = -12.0
-theme_override_font_sizes/font_size = 20
-text = "+100 jeton (dev)"
-
 [node name="Toast" type="Label" parent="Panel"]
 anchors_preset = 7
 anchor_left = 0.5

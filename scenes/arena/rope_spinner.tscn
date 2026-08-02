@@ -1,29 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://bipatlarope01"]
+[gd_scene load_steps=2 format=3 uid="uid://bipatlarope01"]
+
+; İp — geometrinin tamamı RopeVisual içinde koddan kurulur (eğri + örgü tonları + gölge).
+; Sahnede yalnız kök node durur (CLAUDE.md: .tscn minimal).
 
 [ext_resource type="Script" path="res://scripts/rope/rope_visual.gd" id="1"]
 
-[sub_resource type="BoxMesh" id="BarMesh"]
-size = Vector3(6, 0.12, 0.12)
-
-[sub_resource type="StandardMaterial3D" id="BarMat"]
-albedo_color = Color(0.85, 0.45, 0.2, 1)
-
-[sub_resource type="BoxMesh" id="ShadowMesh"]
-size = Vector3(6, 0.02, 0.35)
-
-[sub_resource type="StandardMaterial3D" id="ShadowMat"]
-transparency = 1
-albedo_color = Color(0, 0, 0, 0.35)
-
 [node name="RopeSpinner" type="Node3D"]
 script = ExtResource("1")
-
-[node name="Bar" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.15, 0)
-mesh = SubResource("BarMesh")
-material_override = SubResource("BarMat")
-
-[node name="Shadow" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.02, 0)
-mesh = SubResource("ShadowMesh")
-material_override = SubResource("ShadowMat")

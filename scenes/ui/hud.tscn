@@ -11,6 +11,15 @@ anchor_bottom = 1.0
 mouse_filter = 2
 script = ExtResource("1")
 
+; Tam ekran renk flaşı (GDD §7: kamera sarsıntısı YOK, yerine renk flaşı). En altta durur
+; ki yazıların üstünü örtmesin. Alfa koddan sürülür.
+[node name="Flash" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(1, 0.25, 0.2, 0)
+mouse_filter = 2
+
 [node name="Top" type="Control" parent="."]
 anchors_preset = 10
 anchor_right = 1.0
