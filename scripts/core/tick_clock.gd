@@ -1,7 +1,13 @@
 class_name TickClock extends Node
 ## 60Hz sabit tick çekirdeği (TDD §4.1). Tüm oyun mantığının tek zaman kaynağı.
-## Çalışırken her _physics_process'te bir tick ilerler; testler advance()'i doğrudan
-## çağırabilir (zamanlamadan bağımsız determinizm). GameState (F5) start/stop eder.
+##
+## ⚠ İKİ KULLANIM BİÇİMİ VAR, KARIŞTIRMA:
+##   1) Otonom: start() çağır, saat kendi _physics_process'inde ilerler.
+##   2) Dışarıdan sürülen: sahibi her adımda advance() çağırır (ArenaController böyle yapar,
+##      headless sim aynı kodu hızlı koşturabilsin diye).
+## İkisi aynı anda açık kalırsa tick kare başına İKİ kez artar; ip açısı tick'in yarısı kadar
+## ilerler ve tick'e dayanan her hesap (bot geçiş tahmini, havada kalma, crossing delta) bozulur.
+## Dışarıdan süren sahip mutlaka `set_physics_process(false)` demeli — sim_audit_f8 bunu kontrol eder.
 
 signal ticked(tick: int)
 

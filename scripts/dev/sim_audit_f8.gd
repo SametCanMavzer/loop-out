@@ -7,6 +7,7 @@ var _fail := 0
 
 
 func _ready() -> void:
+	_check_tick_advances_once_per_frame()
 	_check_prepare_does_not_run()
 	_check_input_queue_cleared_on_reset()
 	_check_stop_halts_simulation()
@@ -35,6 +36,24 @@ func _make() -> Dictionary:
 func _free(d: Dictionary) -> void:
 	d.ctrl.queue_free()
 	d.q.queue_free()
+
+
+## Saat kare başına TAM BİR kez ilerlemeli. TickClock'un kendi _physics_process'i açık kalırsa
+## tick iki kat hızlı gider (biri step(), biri TickClock) → current_tick ile ip açısı ayrışır,
+## botların geçiş tahmini bozulur ve hepsi erken zıplayıp ıskalar. Gerçek oyunda yaşandı:
+## aynı seed sim'de tur 8/10 canlı verirken oyunda tur 5/2 canlı veriyordu.
+func _check_tick_advances_once_per_frame() -> void:
+	var d := _make()
+	d.ctrl.start_round(4242)                  # begin() → clock.start() çağırır
+	if d.ctrl.clock.is_physics_processing():
+		push_error("FAIL: TickClock kendi _physics_process'iyle de ilerliyor — tick çift sayılır.")
+		_fail += 1
+	var before: int = d.ctrl.clock.current_tick
+	d.ctrl.step()
+	if d.ctrl.clock.current_tick != before + 1:
+		push_error("FAIL: bir step() tam 1 tick ilerletmeli (%d → %d)."
+			% [before, d.ctrl.clock.current_tick]); _fail += 1
+	_free(d)
 
 
 ## prepare_round kadroyu kurar ama simülasyonu BAŞLATMAZ (geri sayımda ip dönmemeli).

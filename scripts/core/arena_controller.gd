@@ -51,6 +51,11 @@ var _last_player_delta_ms: float = 0.0   # analitik: oyuncunun son geçiş sapma
 func setup(input_queue: InputQueue) -> void:
 	_input_queue = input_queue
 	add_child(clock)
+	# ÖNEMLİ: saati YALNIZ step() ilerletir. TickClock'un kendi _physics_process'i açık kalırsa
+	# tick her karede İKİ kez artar (biri burada, biri TickClock'ta) → current_tick ip açısından
+	# iki kat hızlı gider, botların "ip N tick sonra gelecek" hesabı bozulur ve hepsi erken
+	# zıplayıp ıskalar. (F8'den beri gerçek oyundaki tempo/zorluk bozukluğunun asıl sebebi buydu.)
+	clock.set_physics_process(false)
 	add_child(rope)
 	_r_min = float(Config.ring.get("r_min", 2.2))
 	_r_max = float(Config.ring.get("r_max", 9.0))
