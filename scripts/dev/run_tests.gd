@@ -12,7 +12,7 @@ const TESTS := [
 	"smoke_f1", "audit_f1", "test_tick_core", "test_rope", "test_jumper", "test_stumble",
 	"test_ring", "test_bot", "test_bot_quirk", "test_behavior", "test_behavior_special",
 	"test_director", "test_drama", "test_game_state", "test_economy", "test_audio", "test_sdk", "test_i18n",
-	"test_rope_visual",
+	"test_rope_visual", "test_figures",
 ]
 
 

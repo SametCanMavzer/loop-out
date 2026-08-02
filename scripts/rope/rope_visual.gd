@@ -400,7 +400,9 @@ func _segment_xform(p0: Vector3, p1: Vector3, thick: float) -> Transform3D:
 	var d := p1 - p0
 	var seg_len := d.length()
 	if seg_len < 0.0001:
-		return Transform3D(Basis.from_scale(Vector3.ZERO), p0)
+		# Sıfır ölçek MultiMesh'te saklanmıyor (geri okununca 1 çıkıyor) → çok küçük ölçek
+		# ve kadraj dışı konum birlikte kullanılır.
+		return Transform3D(Basis.from_scale(Vector3.ONE * 0.0001), Vector3(0.0, -10000.0, 0.0))
 	var up := d / seg_len
 	var side := Vector3.UP.cross(up)
 	if side.length_squared() < 0.0001:
@@ -416,7 +418,9 @@ func _shadow_box_xform(p0: Vector3, p1: Vector3, width: float) -> Transform3D:
 	var d := p1 - p0
 	var seg_len := Vector2(d.x, d.z).length()
 	if seg_len < 0.0001:
-		return Transform3D(Basis.from_scale(Vector3.ZERO), p0)
+		# Sıfır ölçek MultiMesh'te saklanmıyor (geri okununca 1 çıkıyor) → çok küçük ölçek
+		# ve kadraj dışı konum birlikte kullanılır.
+		return Transform3D(Basis.from_scale(Vector3.ONE * 0.0001), Vector3(0.0, -10000.0, 0.0))
 	var yaw := atan2(d.x, d.z)
 	var basis := Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(width, 0.02, seg_len * 1.1))
 	return Transform3D(basis, (p0 + p1) * 0.5)

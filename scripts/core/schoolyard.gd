@@ -185,7 +185,10 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.55
+	# İnce dikey yüzeyler (figürlerin gövde/kol/bacakları) tepeden gelen tek ışığı yalayarak
+	# alıyor ve kararıyordu — kadro koyu siluete dönüşüp birbirinden ayırt edilemiyordu.
+	# Ortam ışığı bu yüzden yüksek: yönlü ışık şekli verir, ortam ışığı rengi okutur.
+	env.ambient_light_energy = 1.15
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
